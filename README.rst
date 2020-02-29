@@ -48,8 +48,8 @@ Development version
 
 Check out the code from GitHub::
 
-    git clone https://github.com/wagerrdeveloper/WagerrElectrum.git
-    cd WagerrElectrum
+    git clone https://github.com/wagerr/Wagerr-Electrum.git
+    cd Wagerr-Electrum
 
 Run install (this should install dependencies)::
 

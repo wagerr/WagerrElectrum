@@ -35,7 +35,7 @@ folder.
         sudo rm -rf $FRESH_CLONE && \
         mkdir -p $FRESH_CLONE && \
         cd $FRESH_CLONE  && \
-        git clone https://github.com/wagerrdeveloper/WagerrElectrum.git electrum && \
+        git clone https://github.com/wagerr/Wagerr-Electrum.git electrum && \
         cd electrum
     ```
 
