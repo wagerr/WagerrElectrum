@@ -84,11 +84,11 @@ def hash_header(header: dict) -> str:
         return '0' * 64
     if header.get('prev_block_hash') is None:
         header['prev_block_hash'] = '00'*32
-    return hash_raw_header(serialize_header(header), header.get('block_height'))
+    return hash_raw_header(serialize_header(header))
 
 
-def hash_raw_header(header: str, height : int) -> str:
-    if height == 0:
+def hash_raw_header(header: str) -> str:
+    if header[:2] == '01':
         import quark_hash
         return hash_encode(quark_hash.getPoWHash(bfh(header)))
     else:
