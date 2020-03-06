@@ -36,7 +36,7 @@ import itertools
 import logging
 
 import aiorpcx
-from aiorpcx import RPCSession, Notification, NetAddress
+from aiorpcx import RPCSession, Notification, NetAddress, NewlineFramer
 from aiorpcx.curio import timeout_after, TaskTimeout
 from aiorpcx.jsonrpc import JSONRPC, CodeMessageError
 from aiorpcx.rawsocket import RSClient
@@ -61,6 +61,7 @@ ca_path = certifi.where()
 
 BUCKET_NAME_OF_ONION_SERVERS = 'onion'
 
+MAX_INCOMING_MSG_SIZE = 1_000_000  # make changing max incoming msg size (1 MB) easier
 
 class NetworkTimeout:
     # seconds
@@ -155,6 +156,11 @@ class NotificationSession(RPCSession):
         if not self.interface: return
         if self.interface.debug or self.interface.network.debug:
             self.interface.logger.debug(msg)
+
+
+    def default_framer(self):
+        # overridden so that max_size can be customized
+        return NewlineFramer(max_size=MAX_INCOMING_MSG_SIZE)
 
 
 class GracefulDisconnect(Exception):
@@ -357,7 +363,7 @@ class Interface(Logger):
             self.logger.info(f'disconnecting due to: {repr(e)}')
             return
 
-    def mark_ready(self):
+    def _mark_ready(self) -> None:
         if self.ready.cancelled():
             raise GracefulDisconnect('conn establishment was too slow; *ready* future was cancelled')
         if self.ready.done():
@@ -412,6 +418,7 @@ class Interface(Logger):
         # use lower timeout as we usually have network.bhi_lock here
         timeout = self.network.get_network_timeout_seconds(NetworkTimeout.Urgent)
         res = await self.session.send_request('blockchain.block.header', [height], timeout=timeout)
+        self.logger.info(f"Received Header {blockchain.deserialize_header(bytes.fromhex(res), height)} - Height {height}")
         return blockchain.deserialize_header(bytes.fromhex(res), height)
 
     async def request_chunk(self, height, tip=None, *, can_return_early=False):
@@ -427,8 +434,7 @@ class Interface(Logger):
             self._requested_chunks.add(index)
             res = await self.session.send_request('blockchain.block.headers', [index * 2016, size])
         finally:
-            try: self._requested_chunks.remove(index)
-            except KeyError: pass
+            self._requested_chunks.discard(index)
         conn = self.blockchain.connect_chunk(index, res['hex'])
         if not conn:
             return conn, 0
@@ -495,7 +501,7 @@ class Interface(Logger):
             self.tip = height
             if self.tip < constants.net.max_checkpoint():
                 raise GracefulDisconnect('server tip below max checkpoint')
-            self.mark_ready()
+            self._mark_ready()
             await self._process_header_at_tip()
             self.network.trigger_callback('network_updated')
             await self.network.switch_unwanted_fork_interface()
