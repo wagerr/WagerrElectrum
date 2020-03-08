@@ -176,7 +176,7 @@ class RequestTimedOut(GracefulDisconnect):
     def __str__(self):
         return _("Network request timed out.")
 
-
+class RequestCorrupted(GracefulDisconnect): pass
 class ErrorParsingSSLCert(Exception): pass
 class ErrorGettingSSLCertFromServer(Exception): pass
 class ConnectError(Exception): pass

@@ -54,7 +54,7 @@ from . import blockchain
 from . import bitcoin
 from .blockchain import Blockchain
 from .interface import (Interface, serialize_server, deserialize_server,
-                        RequestTimedOut, NetworkTimeout, BUCKET_NAME_OF_ONION_SERVERS)
+                        RequestTimedOut, NetworkTimeout, BUCKET_NAME_OF_ONION_SERVERS,RequestCorrupted)
 from .version import PROTOCOL_VERSION
 from .simple_config import SimpleConfig
 from .i18n import _
@@ -235,7 +235,7 @@ class Network(Logger):
         Logger.__init__(self)
 
         self.asyncio_loop = asyncio.get_event_loop()
-        #assert self.asyncio_loop.is_running(), "event loop not running"
+        assert self.asyncio_loop.is_running(), "event loop not running"
         self._loop_thread = None  # type: threading.Thread  # set by caller; only used for sanity checks
 
         if config is None:
@@ -296,10 +296,10 @@ class Network(Logger):
 
         self._set_status('disconnected')
 
-    def run_from_another_thread(self, coro):
+    def run_from_another_thread(self, coro,*, timeout=None):
         assert self._loop_thread != threading.current_thread(), 'must not be called from network thread'
         fut = asyncio.run_coroutine_threadsafe(coro, self.asyncio_loop)
-        return fut.result()
+        return fut.result(timeout)
 
     @staticmethod
     def get_instance() -> Optional["Network"]:
@@ -834,7 +834,7 @@ class Network(Logger):
                     if success_fut.exception():
                         try:
                             raise success_fut.exception()
-                        except RequestTimedOut:
+                        except (RequestTimedOut, RequestCorrupted):
                             await iface.close()
                             await iface.got_disconnected
                             continue  # try again
@@ -1153,9 +1153,12 @@ class Network(Logger):
                 async with main_taskgroup as group:
                     await group.spawn(self._maintain_sessions())
                     [await group.spawn(job) for job in self._jobs]
+            except asyncio.CancelledError:
+                raise
             except Exception as e:
-                self.logger.exception('')
-                raise e
+                self.logger.exception('main_taskgroup died.')
+            finally:
+                self.logger.info("taskgroup stopped.")
         asyncio.run_coroutine_threadsafe(main(), self.asyncio_loop)
 
         self.trigger_callback('network_updated')
@@ -1239,7 +1242,7 @@ class Network(Logger):
             except asyncio.CancelledError:
                 # suppress spurious cancellations
                 group = self.main_taskgroup
-                if not group or group._closed:
+                if not group or group.closed():
                     raise
             await asyncio.sleep(0.1)
 
