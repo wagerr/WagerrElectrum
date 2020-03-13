@@ -47,7 +47,8 @@ class AbstractNet:
 
     @classmethod
     def max_checkpoint(cls) -> int:
-        return max(0, len(cls.CHECKPOINTS) * 2016 - 1)
+        #return max(0, len(cls.CHECKPOINTS) * 2016 - 1)
+        return cls.VERIFICATION_BLOCK_HEIGHT
 
 
 class BitcoinMainnet(AbstractNet):
@@ -60,7 +61,9 @@ class BitcoinMainnet(AbstractNet):
     GENESIS = "000007b9191bc7a17bfb6cedf96a8dacebb5730b498361bf26d44a9f9dcc1079"
     DEFAULT_PORTS = {'t': '31336', 's': '31337'}
     DEFAULT_SERVERS = read_json('servers.json', {})
-    CHECKPOINTS = read_json('checkpoints.json', [])
+    #CHECKPOINTS = read_json('checkpoints.json', [])
+    VERIFICATION_BLOCK_MERKLE_ROOT = "000007b9191bc7a17bfb6cedf96a8dacebb5730b498361bf26d44a9f9dcc1079"
+    VERIFICATION_BLOCK_HEIGHT = 0
 
     XPRV_HEADERS = {
         'standard':    0x0221312B,  # xprv
@@ -93,7 +96,9 @@ class BitcoinTestnet(AbstractNet):
     GENESIS = "00000fdc268f54ff1368703792dc046b1356e60914c2b5b6348032144bcb2de5"
     DEFAULT_PORTS = {'t': '31336', 's': '31337'}
     DEFAULT_SERVERS = read_json('servers_testnet.json', {})
-    CHECKPOINTS = read_json('checkpoints_testnet.json', [])
+    #CHECKPOINTS = read_json('checkpoints_testnet.json', [])
+    VERIFICATION_BLOCK_MERKLE_ROOT = "xx"
+    VERIFICATION_BLOCK_HEIGHT = 1
 
     XPRV_HEADERS = {
         'standard':    0x3A805837,  # tprv
@@ -120,7 +125,8 @@ class BitcoinRegtest(BitcoinTestnet):
     SEGWIT_HRP = "bcrt"
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
     DEFAULT_SERVERS = read_json('servers_regtest.json', {})
-    CHECKPOINTS = []
+    #CHECKPOINTS = []
+    VERIFICATION_BLOCK_HEIGHT = 0
 
 
 class BitcoinSimnet(BitcoinTestnet):
@@ -128,7 +134,8 @@ class BitcoinSimnet(BitcoinTestnet):
     SEGWIT_HRP = "sb"
     GENESIS = "683e86bd5c6d110d91b94b97137ba6bfe02dbbdb8e3dff722a669b5d69d77af6"
     DEFAULT_SERVERS = read_json('servers_regtest.json', {})
-    CHECKPOINTS = []
+    #CHECKPOINTS = []
+    VERIFICATION_BLOCK_HEIGHT = 0
 
 
 # don't import net directly, import the module instead (so that net is singleton)

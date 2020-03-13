@@ -199,9 +199,7 @@ class Blockchain(Logger):
                 return func(self, *args, **kwargs)
         return func_wrapper
 
-    @property
-    def checkpoints(self):
-        return constants.net.CHECKPOINTS
+  
 
     def get_max_child(self) -> Optional[int]:
         children = self.get_direct_children()
@@ -302,7 +300,7 @@ class Blockchain(Logger):
             self._size = 0
 
     @classmethod
-    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
+    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None, proof_was_provided: bool=False) -> None:
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
@@ -310,14 +308,15 @@ class Blockchain(Logger):
             raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
         if constants.net.TESTNET:
             return
-        bits = cls.target_to_bits(target)
-        if bits != header.get('bits'):
-            raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        
-        if header.get('block_height') <= LAST_POW_BLOCK:
-            block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
-            if block_hash_as_num > target:
-                raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
+        # We do not need to check the block difficulty if the chain of linked header hashes was proven correct against our checkpoint.
+        if not proof_was_provided:
+            bits = cls.target_to_bits(target)
+            if bits != header.get('bits'):
+                raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+            if header.get('block_height') <= LAST_POW_BLOCK:
+                block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
+                if block_hash_as_num > target:
+                    raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> None:
         chain = []
@@ -358,7 +357,7 @@ class Blockchain(Logger):
     @with_lock
     def save_chunk(self, index: int, chunk: bytes):
         assert index >= 0, index
-        chunk_within_checkpoint_region = index < len(self.checkpoints)
+        chunk_within_checkpoint_region = index * 2016 < constants.net.max_checkpoint()
         # chunks in checkpoint region are the responsibility of the 'main chain'
         if chunk_within_checkpoint_region and self.parent is not None:
             main_chain = get_best_chain()
@@ -418,8 +417,8 @@ class Blockchain(Logger):
         assert forkpoint > parent.forkpoint, (f"forkpoint of parent chain ({parent.forkpoint}) "
                                               f"should be at lower height than children's ({forkpoint})")
         with open(parent.path(), 'rb') as f:
-            f.seek( constants.net.COIN.static_header_offset(forkpoint) - constants.net.COIN.static_header_offset(parent.forkpoint) )
-            parent_data = f.read(constants.net.COIN.static_header_offset(parent_branch_size))
+            f.seek( constants.net.COIN.static_header_offset(forkpoint) - constants.net.COIN.static_header_offset(parent.forkpoint))
+            parent_data = f.read(parent_branch_size * constants.net.COIN.get_header_size_height(forkpoint))
         self.write(parent_data, 0)
         parent.write(my_data, constants.net.COIN.static_header_offset(forkpoint) - constants.net.COIN.static_header_offset(parent.forkpoint) )
         # swap parameters
@@ -501,19 +500,12 @@ class Blockchain(Logger):
         return self.read_header(height)
 
     def get_hash(self, height: int) -> str:
-        def is_height_checkpoint():
-            within_cp_range = height <= constants.net.max_checkpoint()
-            at_chunk_boundary = (height+1) % 2016 == 0
-            return within_cp_range and at_chunk_boundary
+       
 
         if height == -1:
             return '0000000000000000000000000000000000000000000000000000000000000000'
         elif height == 0:
             return constants.net.GENESIS
-        elif is_height_checkpoint():
-            index = height // 2016
-            h, t = self.checkpoints[index]
-            return h
         else:
             header = self.read_header(height)
             if header is None:
@@ -657,9 +649,11 @@ class Blockchain(Logger):
         work_in_last_partial_chunk = (height % 2016 + 1) * work_in_single_header
         return running_total + work_in_last_partial_chunk
 
-    def can_connect(self, header: dict, check_height: bool=True) -> bool:
+    def can_connect(self, header: dict, check_height: bool=True, proof_was_provided: bool=False) -> bool:
         if header is None:
             return False
+        if proof_was_provided:
+            return True
         height = header['block_height']
         if check_height and self.height() != height - 1:
             return False
@@ -681,26 +675,17 @@ class Blockchain(Logger):
             return False
         return True
 
-    def connect_chunk(self, idx: int, hexdata: str) -> bool:
+    def connect_chunk(self, idx: int, hexdata: str, proof_was_provided: bool=False) -> bool:
         assert idx >= 0, idx
         try:
             data = bfh(hexdata)
-            self.verify_chunk(idx, data)
+            if not proof_was_provided:
+                self.verify_chunk(idx, data)
             self.save_chunk(idx, data)
             return True
         except BaseException as e:
             self.logger.info(f'verify_chunk idx {idx} failed: {repr(e)}')
             return False
-
-    def get_checkpoints(self):
-        # for each chunk, store the hash of the last block and the target after the chunk
-        cp = []
-        n = self.height() // 2016
-        for index in range(n):
-            h = self.get_hash((index+1) * 2016 -1)
-            target = self.get_target(index*2016)
-            cp.append((h, target))
-        return cp
 
 
 def check_header(header: dict) -> Optional[Blockchain]:
@@ -713,9 +698,47 @@ def check_header(header: dict) -> Optional[Blockchain]:
     return None
 
 
-def can_connect(header: dict) -> Optional[Blockchain]:
+def can_connect(header: dict, proof_was_provided: bool=False) -> Optional[Blockchain]:
     with blockchains_lock: chains = list(blockchains.values())
     for b in chains:
-        if b.can_connect(header):
+        if b.can_connect(header, proof_was_provided=proof_was_provided):
             return b
     return None
+def verify_proven_chunk(chunk_base_height, chunk_data):
+    #chain = []
+    #CHUNK_SIZE = 2016
+    #start_height = index * CHUNK_SIZE
+    prev_header = None
+    prev_header_hash = None
+    i = 0
+    dataHandled = 0
+    while dataHandled < len(chunk_data):
+        height = chunk_base_height + i
+            
+        headerSize = constants.net.COIN.get_header_size(chunk_data[dataHandled : dataHandled + constants.net.COIN.PRE_ZEROCOIN_HEADER_SIZE])
+        raw_header = chunk_data[dataHandled : dataHandled + headerSize]
+        header = deserialize_header(raw_header, height)
+        # Check the chain of hashes for all headers preceding the proven one.
+        this_header_hash = hash_header(header)
+        if i > 0:
+            if prev_header_hash != header.get('prev_block_hash'):
+                raise Exception("prev hash mismatch: %s vs %s" % (prev_header_hash, header.get('prev_block_hash')))
+        prev_header_hash = this_header_hash
+
+        i += 1
+        dataHandled += headerSize
+
+# Copied from electrumx
+def root_from_proof(hash, branch, index):
+    hash_func = sha256d
+    for elt in branch:
+        if index & 1:
+            hash = hash_func(elt + hash)
+        else:
+            hash = hash_func(hash + elt)
+        index >>= 1
+    if index:
+        raise ValueError('index out of range for branch')
+    return hash
+
+
