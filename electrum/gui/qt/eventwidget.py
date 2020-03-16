@@ -55,8 +55,6 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 4
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblSpreadOrTotal.setText("Handicap " + self.homeSpreadSign + self.spreadPoints)
-        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.spreadHomeOdds)
         self.addBetWidgetItemToList()
 
@@ -67,8 +65,6 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 5
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblSpreadOrTotal.setText("Handicap " + self.awaySpreadSign + self.spreadPoints)
-        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.spreadAwayOdds)
         self.addBetWidgetItemToList()
 
@@ -79,8 +75,6 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 6
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblSpreadOrTotal.setText("Over" + self.totalPoints)
-        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.totalsOverOdds)
         self.addBetWidgetItemToList()
 
@@ -91,8 +85,6 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 7
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblSpreadOrTotal.setText("Under" + self.totalPoints)
-        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.totalsUnderOdds)
         self.addBetWidgetItemToList()
 

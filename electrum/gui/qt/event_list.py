@@ -8,6 +8,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
 from PyQt5.QtCore import Qt, QModelIndex, QItemSelectionModel, QSize
 
 from .eventwidget import EventWidget
+from operator import itemgetter
 
 class EventListView(QListView):
 
@@ -36,7 +37,7 @@ class EventListView(QListView):
 
     def update(self):
         self.parent.eventQListWidget.clear()
-        data=self.parent.events_data
+        data=sorted(self.parent.events_data, key=lambda x: (x['starting']))
         if self.selectedSport=="All Events":
              for x in data:
                  self.cw=EventWidget(self.parent)

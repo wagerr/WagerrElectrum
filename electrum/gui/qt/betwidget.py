@@ -50,10 +50,6 @@ class BetWidget(QWidget):
         #font = QFont("Times", 16) 
         #self.lblTeam.setFont(font)
 
-        self.lblSpreadOrTotal = QLabel("")
-        self.lblSpreadOrTotal.setAlignment(Qt.AlignHCenter)
-        self.lblSpreadOrTotal.hide()
-
         self.lblSelectedOddValue = QLabel("1")
         self.lblSelectedOddValue.setFixedWidth(120)
         self.lblSelectedOddValue.setAlignment(Qt.AlignHCenter)
@@ -88,7 +84,6 @@ class BetWidget(QWidget):
         self.vbox_c.addLayout(self.header_hbox)
         self.vbox_c.addWidget(self.lblPick, alignment=Qt.AlignCenter)
         self.vbox_c.addWidget(self.lblTeam, alignment=Qt.AlignCenter)
-        #self.vbox_c.addWidget(self.lblSpreadOrTotal, alignment=Qt.AlignHCenter)
         self.vbox_c.addWidget(self.lblSelectedOddValue,alignment=Qt.AlignCenter)
         
         self.h = QHBoxLayout()
