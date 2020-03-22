@@ -290,6 +290,7 @@ class PasswordDialog(WindowModalDialog):
     def __init__(self, parent=None, msg=None):
         msg = msg or _('Please enter your password')
         WindowModalDialog.__init__(self, parent, _("Enter Password"))
+        self.setFixedWidth(350)
         self.pw = pw = QLineEdit()
         pw.setEchoMode(2)
         vbox = QVBoxLayout()

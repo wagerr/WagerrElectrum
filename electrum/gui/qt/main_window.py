@@ -1467,18 +1467,20 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def create_betting_tab(self):
         
         self.grid_betting=QGridLayout()
-        #self.grid_betting.setColumnStretch(2,4)
-        self.grid_betting.setColumnStretch(0,4)
-        self.grid_betting.setColumnStretch(1,6)
+        
+        self.grid_betting.setColumnStretch(0,1)
+        self.grid_betting.setColumnStretch(1,7)
+        self.grid_betting.setColumnStretch(2,2)
+        
         
         self.eventQListWidget = QListWidget()
-        #self.eventQListWidget.setFixedWidth(900)
         
         self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
         self.betQListWidget = QListWidget()
-        self.betQListWidget.setFixedWidth(320)
+        
+        
         self.betQListWidget.setStyleSheet(
             "QListWidget::item {"
                 "border: 1px solid #d9d9d9;"
@@ -1500,6 +1502,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         self.bet_slip=QLabel("BET SLIP")
         self.bet_slip.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
+        self.bet_slip.setAlignment(Qt.AlignCenter)
         self.clear_slip=QPushButton("CLEAR SLIP")
         self.clear_slip.clicked.connect(self.Clear_Clicked)
 
@@ -1512,14 +1515,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.vbox_b.addLayout(self.hbox_slip)
         
         self.events_list = EventListView(self)
-        self.events_list.setFixedWidth(150)
+        #self.events_list.setFixedWidth(150)
         #self.events_list.setMinimumWidth(150)
         self.w =  QWidget()
         self.grid_betting.addWidget(self.events_list,0,0)
         self.grid_betting.addLayout(self.vbox_b,0,2)
         
         #self.grid_betting.setColumnMinimumWidth(1,1120)
-        self.grid_betting.setColumnMinimumWidth(2,150)
+        
         self.w.setLayout(self.grid_betting)
         #self.w.setMinimumSize(800, 800)
         run_hook('create_betting_tab', grid)

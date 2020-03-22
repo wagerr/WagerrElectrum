@@ -17,7 +17,7 @@ class BetWidget(QWidget):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.vbox_c = QVBoxLayout()
-        self.vbox_c.setSpacing(0)
+        self.vbox_c.setSpacing(20)
         self.set_labels()
 
     def btnCloseClicked(self):
@@ -51,14 +51,13 @@ class BetWidget(QWidget):
         #self.lblTeam.setFont(font)
 
         self.lblSelectedOddValue = QLabel("1")
-        self.lblSelectedOddValue.setFixedWidth(120)
+        self.lblSelectedOddValue.setMinimumWidth(120)
         self.lblSelectedOddValue.setAlignment(Qt.AlignHCenter)
         self.lblSelectedOddValue.setStyleSheet("background-color: rgb(218, 225, 237);")
 
         self.editBettingAmount = BTCAmountEdit(self.parent.get_decimal_point)
         self.editBettingAmount.setText("0")
         self.editBettingAmount.setValidator(QDoubleValidator(self.editBettingAmount))
-        self.editBettingAmount.setFixedWidth(150)
         self.editBettingAmount.textChanged.connect(self.betAmountChanged)
 
         self.fiat_c = AmountEdit(self.parent.fx.get_currency if self.parent.fx else '')
@@ -69,7 +68,6 @@ class BetWidget(QWidget):
             lambda: self.fiat_c.setFrozen(self.editBettingAmount.isReadOnly()))
 
         self.btnBet = QPushButton("BET")
-        self.btnBet.setFixedWidth(45)
         self.btnBet.clicked.connect(self.btnBetClicked)
         
         self.lblLimitError.hide()
