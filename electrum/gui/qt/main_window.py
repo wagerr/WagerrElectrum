@@ -50,7 +50,7 @@ from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget
                              QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,QLayout,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,QFrame,
-                             QShortcut, QMainWindow, QCompleter, QInputDialog,
+                             QShortcut, QMainWindow, QCompleter, QInputDialog,QDesktopWidget,
                              QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QAbstractItemView,QSpacerItem, QSizePolicy,QListWidget,QListWidgetItem)
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem,QFont
@@ -139,6 +139,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.gui_object = gui_object
         self.config = config = gui_object.config  # type: SimpleConfig
         self.gui_thread = gui_object.gui_thread
+
+        dw = QDesktopWidget()
+        x=dw.width()*0.9
+        y=dw.height()*0.9
+        self.setMinimumSize(x,y)
+        
         self.hbox=QHBoxLayout()
 
         self.setup_exception_hook()
@@ -188,8 +194,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         tabs.addTab(self.create_history_tab(), read_QIcon("tab_history.png"), _('History'))
         tabs.addTab(self.send_tab, read_QIcon("tab_send.png"), _('Send'))
         tabs.addTab(self.receive_tab, read_QIcon("tab_receive.png"), _('Receive'))
-        tabs.addTab(self.betting_tab, read_QIcon("tab_send.png"), _('Betting'))
-        tabs.addTab(self.create_betting_history_tab(), read_QIcon("tab_history.png"), _('Betting History'))
+        tabs.addTab(self.betting_tab, read_QIcon("tab_betting.png"), _('Betting'))
+        tabs.addTab(self.create_betting_history_tab(), read_QIcon("tab_bettinghistory.png"), _('Betting History'))
         def add_optional_tab(tabs, tab, icon, description, name):
             tab.tab_icon = icon
             tab.tab_description = description
@@ -900,6 +906,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         except Exception as e:
             self.logger.info(f'Error getting event list from network: {repr(e)}')
             return
+
+        self.events_list.build_eventlist(self.events_data)
         self.events_list.update()
         self.update_completions()
 
@@ -1476,21 +1484,20 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget = QListWidget()
         
         self.eventQListWidget.setMinimumWidth(800)
-        self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
-
+        self.eventQListWidget.setStyleSheet("QListWidget {border:0px;background:transparent; } QListWidget::item { background-color:#fff}")
+        self.eventQListWidget.setSpacing(10)
         self.betQListWidget = QListWidget()
         
         
         self.betQListWidget.setStyleSheet(
             "QListWidget::item {"
-                "border: 1px solid #d9d9d9;"
+                "border: 1px solid #BD0000;"
                 #"border-top-color: transparent;"
                 #"border-bottom-color: transparent;"
                 "margin: 5px;"
                 "}"
             "QListWidget::item:hover {"
-                "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
-                "border: 1px solid #bfcde4;"
+                "background: rgb(250, 218, 221);"
             "}"
             "QListWidget::item:selected:active{"
                 "background: rgb(250, 218, 221);"
@@ -1501,19 +1508,40 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         )
 
         self.bet_slip=QLabel("BET SLIP")
-        self.bet_slip.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
+        self.bet_slip.setStyleSheet("QLabel {color : #fff  }")
         self.bet_slip.setAlignment(Qt.AlignCenter)
         self.clear_slip=QPushButton("CLEAR SLIP")
         self.clear_slip.clicked.connect(self.Clear_Clicked)
-
-        self.hbox_slip=QHBoxLayout()
+        self.w1 = QWidget()
+        self.w1.setStyleSheet(
+            "QWidget{"
+                "background-color:black;"
+            "}"
+            "QPushButton {"
+                "background-color:#BD0000;"
+                "border:1px solid #BD0000;"
+			    "padding:0.5em;"
+                "color:#ffffff;"
+                "border-radius:3px;"
+                "font-weight:bold;"
+                "text-decoration:none;"
+                "outline: 0;"
+                
+            "}"
+            "QPushButton:disabled {"
+                "background-color:#ed4c4c;"
+            "}"
+            "QPushButton:pressed {"
+                "background-color:#800a0a;"
+            "}")
+        self.hbox_slip=QHBoxLayout(self.w1)
         self.hbox_slip.addWidget(self.bet_slip)
         self.hbox_slip.addWidget(self.clear_slip)
         self.hbox_slip.setAlignment(Qt.AlignTop)
         self.betting_grid = grid = QGridLayout()
         self.vbox_b=QVBoxLayout()
-        self.vbox_b.addLayout(self.hbox_slip)
-        
+        self.vbox_b.addWidget(self.w1)
+        self.vbox_b.addWidget(self.betQListWidget)
         self.events_list = EventListView(self)
         #self.events_list.setFixedWidth(150)
         #self.events_list.setMinimumWidth(150)

@@ -25,12 +25,13 @@ class BetWidget(QWidget):
 
     def set_labels(self):
         self.lblTitle = QLabel("")
+        self.lblTitle.setWordWrap(True)
         self.eventIdToBetOn = ""
         self.btnBetOutcome = 0
 
         #Header close button
         self.btnClose = QPushButton("X")
-        self.btnClose.setFixedSize(20,20)
+        self.btnClose.setMaximumSize(30,30)
         self.btnClose.clicked.connect(self.btnCloseClicked)
 
         #Error on Bet Amount Limit
@@ -40,12 +41,14 @@ class BetWidget(QWidget):
         self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
         
         self.lblPotentialReturnValue = QLabel("0 WGR")
+        self.lblPotentialReturnValue.setStyleSheet("color:#BD0000;font-weight: bold;")
         self.lblPotentialReturnValue.setAlignment(Qt.AlignHCenter)
 
         self.lblPick = QLabel("YOUR PICK:")
         self.lblPick.setAlignment(Qt.AlignHCenter)
 
         self.lblTeam = QLabel("")
+        self.lblTeam.setStyleSheet("color:#BD0000;font-weight: bold;")
         self.lblTeam.setAlignment(Qt.AlignHCenter)
         #font = QFont("Times", 16) 
         #self.lblTeam.setFont(font)
@@ -74,12 +77,19 @@ class BetWidget(QWidget):
         self.lblLimitError.setWordWrap(True)
         #self.lblLimitError.setMinimumHeight(50)
 
+        self.header_widget= QWidget()
+        
+        self.header_widget.setStyleSheet("QLabel { color:#fff;font-weight: bold; } QPushButton { color: #fff; border:0;} QWidget { background-color:#BD0000;}")
         self.header_hbox = QHBoxLayout()
+        self.header_hbox.setSizeConstraint(QLayout.SetMinimumSize);
+        
         self.header_hbox.setSpacing(0)
-        self.header_hbox.addWidget(self.lblTitle,alignment=Qt.AlignCenter)
+        self.header_widget.setLayout(self.header_hbox)
+        
+        self.header_hbox.addWidget(self.lblTitle,alignment=Qt.AlignLeft)
         self.header_hbox.addWidget(self.btnClose,alignment=Qt.AlignRight)
 
-        self.vbox_c.addLayout(self.header_hbox)
+        self.vbox_c.addWidget(self.header_widget)
         self.vbox_c.addWidget(self.lblPick, alignment=Qt.AlignCenter)
         self.vbox_c.addWidget(self.lblTeam, alignment=Qt.AlignCenter)
         self.vbox_c.addWidget(self.lblSelectedOddValue,alignment=Qt.AlignCenter)

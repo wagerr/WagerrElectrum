@@ -105,12 +105,13 @@ class SeedLayout(QVBoxLayout):
             self.seed_e.setText(seed)
         else:  # we expect user to enter text
             assert for_seed_words
-            self.seed_e = CompletionTextEdit()
-            self.seed_e.setTabChangesFocus(False)  # so that tab auto-completes
+            self.seed_e = ButtonsTextEdit()
+            self.seed_e.addButton("paste.png",self.paste_text,_("paste seed"))
+            #self.seed_e.setTabChangesFocus(False)  # so that tab auto-completes
             self.is_seed = is_seed
             self.saved_is_seed = self.is_seed
             self.seed_e.textChanged.connect(self.on_edit)
-            self.initialize_completer()
+            #self.initialize_completer()
 
         self.seed_e.setMaximumHeight(75)
         hbox = QHBoxLayout()
@@ -147,6 +148,9 @@ class SeedLayout(QVBoxLayout):
         if msg:
             self.seed_warning.setText(seed_warning_msg(seed))
         self.addWidget(self.seed_warning)
+    
+    def paste_text(self):
+         self.seed_e.setText(self.parent.app.clipboard().text())
 
     def initialize_completer(self):
         bip39_english_list = Mnemonic('en').wordlist
@@ -190,11 +194,11 @@ class SeedLayout(QVBoxLayout):
         self.parent.next_button.setEnabled(b)
 
         # disable suggestions if user already typed an unknown word
-        for word in self.get_seed().split(" ")[:-1]:
-            if word not in self.wordlist:
-                self.seed_e.disable_suggestions()
-                return
-        self.seed_e.enable_suggestions()
+        #for word in self.get_seed().split(" ")[:-1]:
+        #    if word not in self.wordlist:
+        #        self.seed_e.disable_suggestions()
+        #        return
+        #self.seed_e.enable_suggestions()
 
 class KeysLayout(QVBoxLayout):
     def __init__(self, parent=None, header_layout=None, is_valid=None, allow_multi=False):

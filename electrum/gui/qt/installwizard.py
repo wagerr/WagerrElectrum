@@ -121,7 +121,6 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         self.setWindowTitle('Electrum-Wagerr  -  ' + _('Install Wizard'))
         self.app = app
         self.config = config
-        self.setMinimumSize(600, 400)
         self.accept_signal.connect(self.accept)
         self.title = QLabel()
         self.main_widget = QWidget()
@@ -141,23 +140,24 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         inner_vbox = QVBoxLayout()
         inner_vbox.addWidget(self.title)
         inner_vbox.addWidget(self.main_widget)
-        inner_vbox.addStretch(1)
         inner_vbox.addWidget(self.please_wait)
         inner_vbox.addStretch(1)
         scroll_widget = QWidget()
         scroll_widget.setLayout(inner_vbox)
-        scroll = QScrollArea()
-        scroll.setWidget(scroll_widget)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        scroll.setWidgetResizable(True)
+        scroll_widget.setObjectName("container")
+        scroll_widget.setStyleSheet("#container { border: 1px groove gray;}")
+        #scroll = QScrollArea()
+        #scroll.setWidget(scroll_widget)
+        #scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        #scroll.setWidgetResizable(True)
         icon_vbox = QVBoxLayout()
         icon_vbox.addWidget(self.logo)
         icon_vbox.addStretch(1)
         hbox = QHBoxLayout()
         hbox.addLayout(icon_vbox)
         hbox.addSpacing(5)
-        hbox.addWidget(scroll)
-        hbox.setStretchFactor(scroll, 1)
+        hbox.addWidget(scroll_widget)
+        hbox.setStretchFactor(scroll_widget, 1)
         outer_vbox.addLayout(hbox)
         outer_vbox.addLayout(Buttons(self.back_button, self.next_button))
         self.set_icon('electrum.png')
@@ -425,7 +425,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
 
     @wizard_dialog
     def confirm_seed_dialog(self, run_next, test):
-        self.app.clipboard().clear()
+        #self.app.clipboard().clear()
         title = _('Confirm Seed')
         message = ' '.join([
             _('Your seed is important!'),
