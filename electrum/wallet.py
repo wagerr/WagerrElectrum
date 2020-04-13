@@ -618,7 +618,7 @@ class Abstract_Wallet(AddressSynchronizer):
                 continue
 
             bet_data = self.db.get_bet(tx_hash)
-            if bet_data['result'] == 'pending':
+            if bet_data is None or bet_data['result'] == 'pending':
                 try:
                     bet_data = self.network.run_from_another_thread(self.network.get_bet(tx_hash, timeout=10))
                     self.db.add_bet(tx_hash,bet_data)

@@ -446,24 +446,23 @@ class BaseWizard(Logger):
 
     def restore_from_seed(self):
         self.opt_bip39 = True
-        self.opt_ext = True
         is_cosigning_seed = lambda x: mnemonic.seed_type(x) in ['standard', 'segwit']
         test = mnemonic.is_seed if self.wallet_type == 'standard' else is_cosigning_seed
         self.restore_seed_dialog(run_next=self.on_restore_seed, test=test)
 
-    def on_restore_seed(self, seed, is_bip39, is_ext):
+    def on_restore_seed(self, seed, is_bip39):
         self.seed_type = 'bip39' if is_bip39 else mnemonic.seed_type(seed)
         if self.seed_type == 'bip39':
             f = lambda passphrase: self.on_restore_bip39(seed, passphrase)
-            self.passphrase_dialog(run_next=f, is_restoring=True) if is_ext else f('')
+            f('')
         elif self.seed_type in ['standard', 'segwit']:
             f = lambda passphrase: self.run('create_keystore', seed, passphrase)
-            self.passphrase_dialog(run_next=f, is_restoring=True) if is_ext else f('')
+            f('')
         elif self.seed_type == 'old':
             self.run('create_keystore', seed, '')
         elif mnemonic.is_any_2fa_seed_type(self.seed_type):
             self.load_2fa()
-            self.run('on_restore_seed', seed, is_ext)
+            self.run('on_restore_seed', seed)
         else:
             raise Exception('Unknown seed type', self.seed_type)
 
@@ -471,7 +470,9 @@ class BaseWizard(Logger):
         def f(derivation, script_type):
             derivation = normalize_bip32_derivation(derivation)
             self.run('on_bip43', seed, passphrase, derivation, script_type)
-        self.derivation_and_script_type_dialog(f)
+        #self.derivation_and_script_type_dialog(f)
+        f("m/0'","standard")
+
 
     def create_keystore(self, seed, passphrase):
         k = keystore.from_seed(seed, passphrase, self.wallet_type == 'multisig')

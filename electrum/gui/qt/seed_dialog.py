@@ -56,39 +56,7 @@ def seed_warning_msg(seed):
 
 class SeedLayout(QVBoxLayout):
 
-    def seed_options(self):
-        dialog = QDialog()
-        vbox = QVBoxLayout(dialog)
-        if 'ext' in self.options:
-            cb_ext = QCheckBox(_('Extend this seed with custom words'))
-            cb_ext.setChecked(self.is_ext)
-            vbox.addWidget(cb_ext)
-        if 'bip39' in self.options:
-            def f(b):
-                self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
-                self.is_bip39 = b
-                self.on_edit()
-                if b:
-                    msg = ' '.join([
-                        '<b>' + _('Warning') + ':</b>  ',
-                        _('BIP39 seeds can be imported in Electrum, so that users can access funds locked in other wallets.'),
-                        _('However, we do not generate BIP39 seeds, because they do not meet our safety standard.'),
-                        _('BIP39 seeds do not include a version number, which compromises compatibility with future software.'),
-                        _('We do not guarantee that BIP39 imports will always be supported in Electrum.'),
-                    ])
-                else:
-                    msg = ''
-                self.seed_warning.setText(msg)
-            cb_bip39 = QCheckBox(_('BIP39 seed'))
-            cb_bip39.toggled.connect(f)
-            cb_bip39.setChecked(self.is_bip39)
-            vbox.addWidget(cb_bip39)
-        vbox.addLayout(Buttons(OkButton(dialog)))
-        if not dialog.exec_():
-            return None
-        self.is_ext = cb_ext.isChecked() if 'ext' in self.options else False
-        self.is_bip39 = cb_bip39.isChecked() if 'bip39' in self.options else False
-
+    
     def __init__(self, seed=None, title=None, icon=True, msg=None, options=None,
                  is_seed=None, passphrase=None, parent=None, for_seed_words=True):
         QVBoxLayout.__init__(self)
@@ -130,19 +98,33 @@ class SeedLayout(QVBoxLayout):
 
         # options
         self.is_bip39 = False
-        self.is_ext = False
+        
         if options:
-            opt_button = EnterButton(_('Options'), self.seed_options)
-            hbox.addWidget(opt_button)
+            vbox = QVBoxLayout()
+            hbox.addLayout(vbox)
+            
+            if 'bip39' in self.options:
+                def f(b):
+                    self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
+                    self.is_bip39 = b
+                    self.on_edit()
+                    if b:
+                         msg = ' '.join([
+                        '<b>' + _('Warning') + ':</b>  ',
+                        _('BIP39 seeds can be imported in Electrum, so that users can access funds locked in other wallets.'),
+                        _('However, we do not generate BIP39 seeds, because they do not meet our safety standard.'),
+                        _('BIP39 seeds do not include a version number, which compromises compatibility with future software.'),
+                        _('We do not guarantee that BIP39 imports will always be supported in Electrum.'),
+                        ])
+                    else:
+                        msg = ''
+                    self.seed_warning.setText(msg)
+                cb_bip39 = QCheckBox(_('Import mobile wallet seed phrase.'))
+                cb_bip39.toggled.connect(f)
+                cb_bip39.setChecked(self.is_bip39)
+                vbox.addWidget(cb_bip39)
             self.addLayout(hbox)
-        if passphrase:
-            hbox = QHBoxLayout()
-            passphrase_e = QLineEdit()
-            passphrase_e.setText(passphrase)
-            passphrase_e.setReadOnly(True)
-            hbox.addWidget(QLabel(_("Your seed extension is") + ':'))
-            hbox.addWidget(passphrase_e)
-            self.addLayout(hbox)
+            
         self.addStretch(1)
         self.seed_warning = WWLabel('')
         if msg:
