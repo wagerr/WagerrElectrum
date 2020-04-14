@@ -67,7 +67,7 @@ class EventWidget(QWidget):
         self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 5
-        self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
+        self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
         self.betWidget.lblSelectedOddValue.setText(self.spreadAwayOdds)
         self.addBetWidgetItemToList()
 
@@ -87,7 +87,7 @@ class EventWidget(QWidget):
         self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 7
-        self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
+        self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
         self.betWidget.lblSelectedOddValue.setText(self.totalsUnderOdds)
         self.addBetWidgetItemToList()
 
@@ -95,7 +95,7 @@ class EventWidget(QWidget):
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
         betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
         #betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
-
+        self.betWidget.qlistItem = betQListWidgetItem #for remove item when close button click or bet done
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setMinimumWidth(self.parent.betQListWidget.sizeHintForColumn(0))
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)

@@ -1489,7 +1489,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setSpacing(10)
         self.betQListWidget = QListWidget()
         
-        
         self.betQListWidget.setStyleSheet(
             "QListWidget::item {"
                 "border: 1px solid #BD0000;"
@@ -1902,6 +1901,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 else:
                     print('do_bet sign_done else')
                     self.broadcast_transaction(tx, tx_desc)
+                    a.btnCloseClicked()
+                    
         print('do_bet calling sign_tx_with_password')
         self.sign_tx_with_password(tx, sign_done, password)
         

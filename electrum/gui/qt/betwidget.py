@@ -19,13 +19,14 @@ class BetWidget(QWidget):
         self.vbox_c = QVBoxLayout()
         self.vbox_c.setSpacing(20)
         self.set_labels()
+        self.qlistItem = None
 
     def btnCloseClicked(self):
-        self.parent.betQListWidget.takeItem(0)   
-
+        item = self.parent.betQListWidget.takeItem(self.parent.betQListWidget.row(self.qlistItem))
+        del item
+    
     def set_labels(self):
         self.lblTitle = QLabel("")
-        self.lblTitle.setWordWrap(True)
         self.lblTitle.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum));
         self.eventIdToBetOn = ""
         self.btnBetOutcome = 0
@@ -36,7 +37,10 @@ class BetWidget(QWidget):
         self.btnClose.clicked.connect(self.btnCloseClicked)
 
         #Error on Bet Amount Limit
-        self.lblLimitError = QLabel("Incorrect bet amount. Please ensure your bet is between 25-10000 WGR inclusive.")
+        self.errText = "Incorrect bet amount. Please ensure your bet is between 25-10000 WGR inclusive."
+        self.lblLimitError = QLabel("")
+        self.lblLimitError.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum));
+        self.lblLimitError.setWordWrap(True)
         
         self.lblPotentialReturn = QLabel("Potential Returns:")
         self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
@@ -60,7 +64,7 @@ class BetWidget(QWidget):
         self.lblSelectedOddValue.setStyleSheet("background-color: rgb(218, 225, 237);")
 
         self.editBettingAmount = BTCAmountEdit(self.parent.get_decimal_point)
-        self.editBettingAmount.setText("0")
+        self.editBettingAmount.setPlaceholderText("0")
         self.editBettingAmount.setValidator(QDoubleValidator(self.editBettingAmount))
         self.editBettingAmount.textChanged.connect(self.betAmountChanged)
 
@@ -74,10 +78,6 @@ class BetWidget(QWidget):
         self.btnBet = QPushButton("BET")
         self.btnBet.clicked.connect(self.btnBetClicked)
         
-        self.lblLimitError.hide()
-        self.lblLimitError.setWordWrap(True)
-        #self.lblLimitError.setMinimumHeight(50)
-
         self.header_widget= QWidget()
         
         self.header_widget.setStyleSheet("QLabel { color:#fff;font-weight: bold; } QPushButton { color: #fff; border:0;} QWidget { background-color:#BD0000;}")
@@ -106,16 +106,19 @@ class BetWidget(QWidget):
         self.setLayout(self.vbox_c)
 
     def btnBetClicked(self):
-        betAmtInWgr = self.editBettingAmount.get_amount() / COIN
+        betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN
         print("Betting Amount : ", betAmtInWgr)
         if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
-            self.lblLimitError.hide()
             self.parent.do_bet(a = self)
             self.btnBetValue = float(self.editBettingAmount.text()) + (((float(self.editBettingAmount.text()) * (float(self.lblSelectedOddValue.text()) -1 ))) *.94 )
-        else:
-            self.lblLimitError.show()
+            
         
     def betAmountChanged(self):
+        betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN
+        if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
+            self.lblLimitError.setText("")
+        else:
+            self.lblLimitError.setText(self.errText)
         bb = float(0)
         if self.editBettingAmount.text() == "":
             bb = float(0)
