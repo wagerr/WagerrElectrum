@@ -203,7 +203,7 @@ class PayToEdit(CompletionTextEdit, ScanQRTextEdit, Logger):
 
     def qr_input(self):
         data = super(PayToEdit,self).qr_input()
-        if data.startswith("bitcoin:"):
+        if data.startswith("wagerr:"):
             self.scan_f(data)
             # TODO: update fee
 

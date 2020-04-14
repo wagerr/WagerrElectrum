@@ -26,6 +26,7 @@ class BetWidget(QWidget):
     def set_labels(self):
         self.lblTitle = QLabel("")
         self.lblTitle.setWordWrap(True)
+        self.lblTitle.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum));
         self.eventIdToBetOn = ""
         self.btnBetOutcome = 0
 
@@ -88,7 +89,7 @@ class BetWidget(QWidget):
         
         self.header_hbox.addWidget(self.lblTitle,alignment=Qt.AlignLeft)
         self.header_hbox.addWidget(self.btnClose,alignment=Qt.AlignRight)
-
+        
         self.vbox_c.addWidget(self.header_widget)
         self.vbox_c.addWidget(self.lblPick, alignment=Qt.AlignCenter)
         self.vbox_c.addWidget(self.lblTeam, alignment=Qt.AlignCenter)

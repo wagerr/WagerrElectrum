@@ -108,17 +108,6 @@ class SeedLayout(QVBoxLayout):
                     self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
                     self.is_bip39 = b
                     self.on_edit()
-                    if b:
-                         msg = ' '.join([
-                        '<b>' + _('Warning') + ':</b>  ',
-                        _('BIP39 seeds can be imported in Electrum, so that users can access funds locked in other wallets.'),
-                        _('However, we do not generate BIP39 seeds, because they do not meet our safety standard.'),
-                        _('BIP39 seeds do not include a version number, which compromises compatibility with future software.'),
-                        _('We do not guarantee that BIP39 imports will always be supported in Electrum.'),
-                        ])
-                    else:
-                        msg = ''
-                    self.seed_warning.setText(msg)
                 cb_bip39 = QCheckBox(_('Import mobile wallet seed phrase.'))
                 cb_bip39.toggled.connect(f)
                 cb_bip39.setChecked(self.is_bip39)

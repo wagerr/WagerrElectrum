@@ -10,25 +10,28 @@ from .util import (read_QIcon)
 from .eventwidget import EventWidget
 from operator import itemgetter
 from collections import defaultdict
-import re 
+import re , time
 
 class EventListView(QListView):
 
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.setStyleSheet("QListView::item:selected { background-color: #BD0000; } QListView { border:0px;background-color:#151515;color:#fff }")
+        self.setStyleSheet("QListView::item:selected { background-color: #BD0000; } QListView { border:0px;background-color:#151515;color:#fff;font-weight:bold }")
         
         
-    def filter_empty_events(self,odds):
+    def filter_events(self,event):
+        odds = event["odds"]
+        eventtime = event["starting"]
+
         moneyline = odds[0]
         m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"]
-        return m1 > 0
+        return m1 > 0 and (eventtime - 720) > time.time()
 
     def build_eventlist(self,events_data):
         self.selectedSport = "All Events"
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        events_data = list(filter(lambda d1: self.filter_empty_events(d1["odds"]),events_data))
+        events_data = list(filter(lambda d1: self.filter_events(d1),events_data))
         counts = defaultdict(int)
         for item in events_data:
             counts[item["sport"]] += 1
@@ -38,22 +41,25 @@ class EventListView(QListView):
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League","Esports"]
         model = QStandardItemModel(self)
+        model.setColumnCount(2)
         self.setSpacing(10)
         for s in sports:
-            model.appendRow(QStandardItem(read_QIcon(''.join([s,".png"])),''.join([s,"(",str(counts[s] or "0"),")"])))
+            model.appendRow([
+                            QStandardItem(read_QIcon(''.join([s,".png"]))," {0} ({1})".format(s,str(counts[s] or "0")))
+                            ])
         self.setModel(model)
         self.selectionModel().currentRowChanged.connect(self.item_changed)
 
     def item_changed(self, idx):
         sport = self.model().itemFromIndex(idx)
-        self.selectedSport = re.sub(r'\([^)]*\)', '', sport.text())
-        print("Selected Sport : ", sport.text())
+        self.selectedSport = re.sub(r'\([^)]*\)', '', sport.text()).strip()
+        print("Selected Sport : ", self.selectedSport)
         self.selectionModel().setCurrentIndex(idx, QItemSelectionModel.SelectCurrent)
         self.update()
  
     def update(self):
         self.parent.eventQListWidget.clear()
-        event_data = list(filter(lambda d1: self.filter_empty_events(d1["odds"]),self.parent.events_data))
+        event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.events_data))
         sorted_data=sorted(event_data, key=lambda x: (x['starting']))
 
         if self.selectedSport=="All Events":

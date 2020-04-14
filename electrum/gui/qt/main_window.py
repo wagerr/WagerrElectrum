@@ -881,6 +881,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         self.tray.setToolTip("%s (%s)" % (text, self.wallet.basename()))
         self.balance_label.setText(text)
+        self.blockchain_status.setText("Height: {} ".format(self.network.get_local_height()))
         self.status_button.setIcon( icon )
 
     def update_wallet(self):
@@ -1476,15 +1477,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         
         self.grid_betting=QGridLayout()
         
-        self.grid_betting.setColumnStretch(0,1)
-        self.grid_betting.setColumnStretch(1,7)
+        self.grid_betting.setColumnStretch(0,1.3)
+        self.grid_betting.setColumnStretch(1,6.7)
         self.grid_betting.setColumnStretch(2,2)
         
         
         self.eventQListWidget = QListWidget()
         
         self.eventQListWidget.setMinimumWidth(800)
-        self.eventQListWidget.setStyleSheet("QListWidget {border:0px;background:transparent; } QListWidget::item { background-color:#fff}")
+        self.eventQListWidget.setStyleSheet("QListWidget { border:0px; background-color:#DEE2E6; } QListWidget::item { background-color:#fff}")
         self.eventQListWidget.setSpacing(10)
         self.betQListWidget = QListWidget()
         
@@ -2379,6 +2380,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.balance_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.balance_label.setStyleSheet("""QLabel { padding: 0 }""")
         sb.addWidget(self.balance_label)
+
+        self.blockchain_status = QLabel("Height:")
+        self.blockchain_status.setStyleSheet("QLabel { font-weight:bold }")
+        sb.addPermanentWidget(self.blockchain_status)
 
         self.search_box = QLineEdit()
         self.search_box.textChanged.connect(self.do_search)
@@ -3371,7 +3376,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             tx_widgets.append((chooser_label, chooser_combo))
 
         def on_unconf(x):
-            self.config.set_key('confirmed_only', bool(x))
+            self.config.set_key('confirmed_only', bool(x) , True)
         conf_only = self.config.get('confirmed_only', False)
         unconf_cb = QCheckBox(_('Spend only confirmed coins'))
         unconf_cb.setToolTip(_('Spend only confirmed inputs.'))

@@ -105,7 +105,7 @@ class EventWidget(QWidget):
     def setData(self,obj):
         self.eventId = str(obj["event_id"])
         self.lblTournament = QLabel(obj["tournament"] + " " + str("(Event ID: " + str(obj["event_id"]) + ")"))
-        self.lblTournament.setStyleSheet("QLabel { background-color : #BD0000;color:#fff;padding:0.5em;  }")
+        self.lblTournament.setStyleSheet("QLabel { background-color : #BD0000;color:#fff;padding:0.5em; font-weight:bold;  }")
         self.lblTournament.setAlignment(Qt.AlignLeft)
         self.lblEventTime = QLabel(time.strftime('%A,%b %dth %I:%M%p(%z %Z)', time.localtime(obj["starting"])))
         self.lblEventTime.setAlignment(Qt.AlignRight)
@@ -115,20 +115,26 @@ class EventWidget(QWidget):
         self.hbox_tournament.setSpacing(0)
         self.vbox_event = QVBoxLayout()
         self.vbox_event.addLayout(self.hbox_tournament)
-        self.lblEventTime.setStyleSheet("QLabel { background-color : #BD0000; color:#fff;padding:0.5em;  }")
+        self.lblEventTime.setStyleSheet("QLabel { background-color : #BD0000; color:#fff;padding:0.5em; font-weight:bold; }")
         
         self.lblMoneyLineHeading = QLabel("   Money Line  ")
         self.lblSpreadHeading = QLabel("Spread")
         self.lblTotalHeading = QLabel("Total")
         self.lblDraw = QLabel("Draw")
 
-        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlHome"]/ODDS_DIVISOR))))
-        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlAway"]/ODDS_DIVISOR))))
-        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlDraw"]/ODDS_DIVISOR))))
 
-        
+
         moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR
         moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
+        moneyLineDrawOdds = obj["odds"][0]["mlDraw"]/ODDS_DIVISOR
+
+        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(moneyLineHomeOdds) if str(moneyLineHomeOdds) != "0.0" else "-")))
+        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(moneyLineAwayOdds) if str(moneyLineAwayOdds) != "0.0" else "-")))
+        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(moneyLineDrawOdds) if str(moneyLineDrawOdds) != "0.0" else "-")))
+
+        self.btnMoneyLineHome.setDisabled(str(moneyLineHomeOdds) == "0.0")
+        self.btnMoneyLineAway.setDisabled(str(moneyLineAwayOdds) == "0.0")
+        self.btnMoneyLineDraw.setDisabled(str(moneyLineDrawOdds) == "0.0")
         
         self.homeSpreadSign = ""
         if moneyLineHomeOdds < moneyLineAwayOdds :
