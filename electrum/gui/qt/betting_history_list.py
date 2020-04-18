@@ -404,7 +404,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.EVENT_ID:_('Event ID'),
             BettingHistoryColumns.TRANSACTION_ID:_('Transaction ID'),
             BettingHistoryColumns.START_TIME:_('Start Time'),
-            BettingHistoryColumns.BET_OUTCOME:_('Bet Outcome'),
+            BettingHistoryColumns.BET_OUTCOME:_('Bet Selection'),
             BettingHistoryColumns.HOME:_('Home'),
             BettingHistoryColumns.AWAY:_('Away'),
             BettingHistoryColumns.TWGR_AMOUNT:_(t_label),

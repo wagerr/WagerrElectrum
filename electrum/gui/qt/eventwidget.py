@@ -20,6 +20,7 @@ class EventWidget(QWidget):
         self.grid.setContentsMargins(0,0,0,0)
         self.grid.setVerticalSpacing(-1)
         self.grid.setHorizontalSpacing(-1)
+        self.isEffectiveOdds = self.parent.oddswitch.isChecked()
         
     def btnMoneyLineHomeClicked(self):
         print("Money Line Home button clicked for item : ",self.btnMoneyLineHome.text())
@@ -122,35 +123,51 @@ class EventWidget(QWidget):
         self.lblTotalHeading = QLabel("Total")
         self.lblDraw = QLabel("Draw")
 
+        
+        _moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR
+        _moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
+        _moneyLineDrawOdds = obj["odds"][0]["mlDraw"]/ODDS_DIVISOR
 
+        if self.isEffectiveOdds :
+            _moneyLineHomeOdds = _moneyLineHomeOdds if _moneyLineHomeOdds == 0 else (1 + (_moneyLineHomeOdds - 1) * 0.94)
+            _moneyLineAwayOdds = _moneyLineAwayOdds if _moneyLineAwayOdds == 0 else (1 + (_moneyLineAwayOdds - 1) * 0.94)
+            _moneyLineDrawOdds = _moneyLineDrawOdds if _moneyLineDrawOdds == 0 else (1 + (_moneyLineDrawOdds - 1) * 0.94)
 
-        moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR
-        moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
-        moneyLineDrawOdds = obj["odds"][0]["mlDraw"]/ODDS_DIVISOR
+            
+        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(_moneyLineHomeOdds) if str(_moneyLineHomeOdds) != "0.0" else "-")))
+        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(_moneyLineAwayOdds) if str(_moneyLineAwayOdds) != "0.0" else "-")))
+        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(_moneyLineDrawOdds) if str(_moneyLineDrawOdds) != "0.0" else "-")))
 
-        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(moneyLineHomeOdds) if str(moneyLineHomeOdds) != "0.0" else "-")))
-        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(moneyLineAwayOdds) if str(moneyLineAwayOdds) != "0.0" else "-")))
-        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(moneyLineDrawOdds) if str(moneyLineDrawOdds) != "0.0" else "-")))
-
-        self.btnMoneyLineHome.setDisabled(str(moneyLineHomeOdds) == "0.0")
-        self.btnMoneyLineAway.setDisabled(str(moneyLineAwayOdds) == "0.0")
-        self.btnMoneyLineDraw.setDisabled(str(moneyLineDrawOdds) == "0.0")
+        self.btnMoneyLineHome.setDisabled(str(_moneyLineHomeOdds) == "0.0")
+        self.btnMoneyLineAway.setDisabled(str(_moneyLineAwayOdds) == "0.0")
+        self.btnMoneyLineDraw.setDisabled(str(_moneyLineDrawOdds) == "0.0")
         
         self.homeSpreadSign = ""
-        if moneyLineHomeOdds < moneyLineAwayOdds :
+        if _moneyLineHomeOdds < _moneyLineAwayOdds :
             self.homeSpreadSign = "-"
         else:
             self.homeSpreadSign = "+"
 
         self.awaySpreadSign = ""
-        if moneyLineHomeOdds > moneyLineAwayOdds :
+        if _moneyLineHomeOdds > _moneyLineAwayOdds :
             self.awaySpreadSign = "-"
         else:
             self.awaySpreadSign = "+"
 
-        self.spreadPoints = str(int(obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR))
-        self.spreadHomeOdds = str("{0:.2f}".format(obj["odds"][1]["spreadHome"]/ODDS_DIVISOR))
-        self.spreadAwayOdds = str("{0:.2f}".format(obj["odds"][1]["spreadAway"]/ODDS_DIVISOR))
+
+        _spreadPoints = int(obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR)
+        _spreadHomeOdds = obj["odds"][1]["spreadHome"]/ODDS_DIVISOR
+        _spreadAwayOdds = obj["odds"][1]["spreadAway"]/ODDS_DIVISOR
+
+        if self.isEffectiveOdds :
+            _spreadHomeOdds = _spreadHomeOdds if _spreadHomeOdds == 0 else (1 + (_spreadHomeOdds - 1) * 0.94)
+            _spreadAwayOdds = _spreadAwayOdds if _spreadAwayOdds == 0 else (1 + (_spreadAwayOdds - 1) * 0.94)
+            
+
+
+        self.spreadPoints = str(_spreadPoints)
+        self.spreadHomeOdds = str("{0:.2f}".format(_spreadHomeOdds))
+        self.spreadAwayOdds = str("{0:.2f}".format(_spreadAwayOdds))
         
         self.btnSpreadHome = QPushButton(self.homeSpreadSign + self.spreadPoints + "    " + self.spreadHomeOdds if self.spreadHomeOdds != "0.00" else "-" )
         self.btnSpreadAway = QPushButton(self.awaySpreadSign + self.spreadPoints + "    " + self.spreadAwayOdds if self.spreadAwayOdds != "0.00" else "-")
@@ -159,9 +176,20 @@ class EventWidget(QWidget):
         self.btnSpreadHome.setDisabled(self.spreadHomeOdds == "0.00")
         self.btnSpreadAway.setDisabled(self.spreadAwayOdds == "0.00")
         
-        self.totalPoints = str("{0:.1f}".format(obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR))
-        self.totalsOverOdds = str("{0:.2f}".format(obj["odds"][2]["totalsOver"]/ODDS_DIVISOR))
-        self.totalsUnderOdds = str("{0:.2f}".format(obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR))
+        _totalPoints = obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR
+        _totalsOverOdds = obj["odds"][2]["totalsOver"]/ODDS_DIVISOR
+        _totalsUnderOdds = obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR
+
+        if self.isEffectiveOdds :
+            _totalsOverOdds = _totalsOverOdds if _totalsOverOdds == 0 else (1 + (_totalsOverOdds - 1) * 0.94)
+            _totalsUnderOdds = _totalsUnderOdds if _totalsUnderOdds == 0 else (1 + (_totalsUnderOdds - 1) * 0.94)
+           
+        
+
+        self.totalPoints = str("{0:.1f}".format(_totalPoints))
+        self.totalsOverOdds = str("{0:.2f}".format(_totalsOverOdds))
+        self.totalsUnderOdds = str("{0:.2f}".format(_totalsUnderOdds))
+
         overTotalPointText = "(O" + self.totalPoints + ")"
         underTotalPointText = "(U" + self.totalPoints + ")"
         

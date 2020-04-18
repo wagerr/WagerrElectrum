@@ -99,6 +99,7 @@ from .betting_history_list import (BettingHistoryList, BettingHistoryModel)
 from .update_checker import UpdateCheck, UpdateCheckThread
 from electrum.bet import PeerlessBet
 from PyQt5 import QtWidgets
+from .toogle_switch import ToogleSwitch
 
 from .event_list import EventListView
 
@@ -486,7 +487,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.password_menu.setEnabled(self.wallet.may_have_password())
         self.import_privkey_menu.setVisible(self.wallet.can_import_privkey())
         self.import_address_menu.setVisible(self.wallet.can_import_address())
-        self.export_menu.setEnabled(self.wallet.can_export())
+        #self.export_menu.setEnabled(self.wallet.can_export())
 
     def warn_if_watching_only(self):
         if self.wallet.is_watching_only():
@@ -601,7 +602,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.private_keys_menu = wallet_menu.addMenu(_("&Private keys"))
         self.private_keys_menu.addAction(_("&Sweep"), self.sweep_key_dialog)
         self.import_privkey_menu = self.private_keys_menu.addAction(_("&Import"), self.do_import_privkey)
-        self.export_menu = self.private_keys_menu.addAction(_("&Export"), self.export_privkeys_dialog)
+        #self.export_menu = self.private_keys_menu.addAction(_("&Export"), self.export_privkeys_dialog)
         self.import_address_menu = wallet_menu.addAction(_("Import addresses"), self.import_addresses)
         wallet_menu.addSeparator()
 
@@ -1543,12 +1544,35 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.vbox_b.addWidget(self.w1)
         self.vbox_b.addWidget(self.betQListWidget)
         self.events_list = EventListView(self)
-        #self.events_list.setFixedWidth(150)
-        #self.events_list.setMinimumWidth(150)
+
+        self.vbox_grid = QVBoxLayout()
+        self.oddswitch_backg = QWidget()
+        self.oddswitch_backg.setContentsMargins(0,0,0,0)
+        self.oddswitch_backg.setStyleSheet(
+            "QWidget{"
+                "background-color:#BD0000;"
+                "margin:0 5px;"
+            "}"
+        )
+        self.hbox_switch = QHBoxLayout(self.oddswitch_backg)
+        
+        self.hbox_switch.addStretch(5)
+        
+        
+        self.oddswitch = ToogleSwitch("","")
+        self.oddswitch.setChecked(False)
+        self.oddswitch.clicked.connect(self.events_list.update)
+        self.oddswitch_label = QLabel("On Chain Odds / Effective Odds")
+        self.oddswitch_label.setStyleSheet("font-weight: bold;color:white");
+        self.hbox_switch.addWidget(self.oddswitch_label)
+        self.hbox_switch.addWidget(self.oddswitch)
+        self.vbox_grid.addWidget(self.oddswitch_backg)
+
+
         self.w =  QWidget()
         self.grid_betting.addWidget(self.events_list,0,0)
         self.grid_betting.addLayout(self.vbox_b,0,2)
-        
+        self.grid_betting.addLayout(self.vbox_grid,0,1)
         #self.grid_betting.setColumnMinimumWidth(1,1120)
         
         self.w.setLayout(self.grid_betting)

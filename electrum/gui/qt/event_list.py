@@ -18,8 +18,7 @@ class EventListView(QListView):
         super().__init__(parent)
         self.parent = parent
         self.setStyleSheet("QListView::item:selected { background-color: #BD0000; } QListView { border:0px;background-color:#151515;color:#fff;font-weight:bold }")
-        
-        
+        self.selectedSport = "All Events"
     def filter_events(self,event):
         odds = event["odds"]
         eventtime = event["starting"]
@@ -29,7 +28,6 @@ class EventListView(QListView):
         return m1 > 0 and (eventtime - 720) > time.time()
 
     def build_eventlist(self,events_data):
-        self.selectedSport = "All Events"
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         events_data = list(filter(lambda d1: self.filter_events(d1),events_data))
         counts = defaultdict(int)
@@ -61,7 +59,7 @@ class EventListView(QListView):
         self.parent.eventQListWidget.clear()
         event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.events_data))
         sorted_data=sorted(event_data, key=lambda x: (x['starting']))
-
+        
         if self.selectedSport=="All Events":
              for x in sorted_data:
                  self.cw=EventWidget(self.parent)
@@ -81,4 +79,4 @@ class EventListView(QListView):
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)
                     self.parent.eventQListWidget.setItemWidget(eventQListWidgetItem, self.cw)
             
-        self.parent.grid_betting.addWidget(self.parent.eventQListWidget,0,1)
+        self.parent.vbox_grid.addWidget(self.parent.eventQListWidget)
