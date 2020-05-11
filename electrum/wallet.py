@@ -57,7 +57,7 @@ from . import transaction, bitcoin, coinchooser, paymentrequest, ecc, bip32
 from .transaction import Transaction, TxOutput, TxOutputHwInfo
 from .plugin import run_hook
 from .address_synchronizer import (AddressSynchronizer, TX_HEIGHT_LOCAL,
-                                   TX_HEIGHT_UNCONF_PARENT, TX_HEIGHT_UNCONFIRMED)
+                                   TX_HEIGHT_UNCONF_PARENT, TX_HEIGHT_UNCONFIRMED,TX_BET_CONFIRMATION)
 from .paymentrequest import (PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED,
                              InvoiceStore)
 from .contacts import Contacts
@@ -502,8 +502,6 @@ class Abstract_Wallet(AddressSynchronizer):
             if to_height is not None and height >= to_height:
                 continue
             tx = self.db.get_transaction(tx_hash)
-            if tx.is_betting_tx():
-                continue
             item = {
                 'txid': tx_hash,
                 'height': height,
@@ -759,8 +757,8 @@ class Abstract_Wallet(AddressSynchronizer):
         height = tx_mined_info.height
         conf = tx_mined_info.conf
         timestamp = tx_mined_info.timestamp
+        tx = self.db.get_transaction(tx_hash)
         if conf == 0:
-            tx = self.db.get_transaction(tx_hash)
             if not tx:
                 return 2, 'unknown'
             is_final = tx and tx.is_final()
@@ -788,6 +786,12 @@ class Abstract_Wallet(AddressSynchronizer):
                 status = 2  # not SPV verified
         else:
             status = 3 + min(conf, 6)
+            if tx.isCoinStake():
+                if conf >= TX_BET_CONFIRMATION:
+                   status = 9
+                else:
+                    status = 4 
+             
         time_str = format_time(timestamp) if timestamp else _("unknown")
         status_str = TX_STATUS[status] if status < 4 else time_str
         if extra:

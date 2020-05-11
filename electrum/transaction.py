@@ -1229,6 +1229,13 @@ class Transaction:
             if o.type == TYPE_BET:
                 retVal = True
         return retVal
+
+    def isCoinStake(self):
+        inputs_length = len(self.inputs())
+        outputs_length = len(self.outputs())
+        retVal = (inputs_length == 1 and  outputs_length >= 1 and self._outputs[0].address == "")
+        return retVal
+        
             
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []

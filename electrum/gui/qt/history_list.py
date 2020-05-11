@@ -243,7 +243,6 @@ class HistoryModel(QAbstractItemModel, Logger):
         fx = self.parent.fx
         if fx: fx.history_used_spot = False
         r = self.parent.wallet.get_full_history(domain=self.get_domain(), from_timestamp=None,show_addresses=True, to_timestamp=None, fx=fx)
-        
         self.set_visibility_of_columns()
         if r['transactions'] == list(self.transactions.values()):
             return

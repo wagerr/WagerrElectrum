@@ -19,6 +19,8 @@ class EventListView(QListView):
         self.parent = parent
         self.setStyleSheet("QListView::item:selected { background-color: #BD0000; } QListView { border:0px;background-color:#151515;color:#fff;font-weight:bold }")
         self.selectedSport = "All Events"
+        self.eventQListWidget_scrollbar = self.parent.eventQListWidget.verticalScrollBar()
+
     def filter_events(self,event):
         odds = event["odds"]
         eventtime = event["starting"]
@@ -54,8 +56,10 @@ class EventListView(QListView):
         print("Selected Sport : ", self.selectedSport)
         self.selectionModel().setCurrentIndex(idx, QItemSelectionModel.SelectCurrent)
         self.update()
- 
+        self.eventQListWidget_scrollbar.setValue(0)
+
     def update(self):
+        self.eventQListWidget_scroll_position = self.eventQListWidget_scrollbar.value();
         self.parent.eventQListWidget.clear()
         event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.events_data))
         sorted_data=sorted(event_data, key=lambda x: (x['starting']))
@@ -78,5 +82,4 @@ class EventListView(QListView):
                     eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)
                     self.parent.eventQListWidget.setItemWidget(eventQListWidgetItem, self.cw)
-            
-        self.parent.vbox_grid.addWidget(self.parent.eventQListWidget)
+        self.eventQListWidget_scrollbar.setValue(self.eventQListWidget_scroll_position)

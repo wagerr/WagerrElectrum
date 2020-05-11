@@ -59,6 +59,8 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 4
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
+        self.betWidget.lblHandicap.setHidden(False)
+        self.betWidget.lblHandicap.setText("Handicap "+ self.homeSpreadSign + self.spreadPoints)
         self.betWidget.lblSelectedOddValue.setText(self.spreadHomeOdds)
         self.addBetWidgetItemToList()
 
@@ -69,6 +71,8 @@ class EventWidget(QWidget):
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 5
         self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
+        self.betWidget.lblHandicap.setHidden(False)
+        self.betWidget.lblHandicap.setText("Handicap "+ self.awaySpreadSign + self.spreadPoints)
         self.betWidget.lblSelectedOddValue.setText(self.spreadAwayOdds)
         self.addBetWidgetItemToList()
 
@@ -78,7 +82,7 @@ class EventWidget(QWidget):
         self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 6
-        self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
+        self.betWidget.lblTeam.setText("Over " + self.totalPoints)
         self.betWidget.lblSelectedOddValue.setText(self.totalsOverOdds)
         self.addBetWidgetItemToList()
 
@@ -88,7 +92,7 @@ class EventWidget(QWidget):
         self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
         self.betWidget.eventIdToBetOn = self.eventId
         self.betWidget.betOutcome = 7
-        self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
+        self.betWidget.lblTeam.setText("Under " + self.totalPoints)
         self.betWidget.lblSelectedOddValue.setText(self.totalsUnderOdds)
         self.addBetWidgetItemToList()
 

@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 TX_HEIGHT_LOCAL = -2
 TX_HEIGHT_UNCONF_PARENT = -1
 TX_HEIGHT_UNCONFIRMED = 0
+TX_BET_CONFIRMATION = 101
 
 class AddTransactionException(Exception):
     pass
@@ -735,11 +736,12 @@ class AddressSynchronizer(Logger):
         c = u = x = 0
         local_height = self.get_local_height()
         for txo, (tx_height, v, is_cb) in received.items():
+            tx_hash = txo.split(":")[0]
             if txo in excluded_coins:
                 continue
             if is_cb and tx_height + COINBASE_MATURITY > local_height:
                 x += v
-            elif tx_height > 0:
+            elif tx_height > 0 and not (self.db.get_transaction(tx_hash).isCoinStake() and (tx_height + TX_BET_CONFIRMATION > local_height))  :
                 c += v
             else:
                 u += v
@@ -768,6 +770,10 @@ class AddressSynchronizer(Logger):
         for addr in domain:
             utxos = self.get_addr_utxo(addr)
             for x in utxos.values():
+                tx = self.db.get_transaction(x["prevout_hash"])
+                #101 confirmation for bet_tx_receive
+                if tx.isCoinStake() and x['height'] + TX_BET_CONFIRMATION > self.get_local_height(): 
+                    continue
                 if confirmed_only and x['height'] <= 0:
                     continue
                 if nonlocal_only and x['height'] == TX_HEIGHT_LOCAL:

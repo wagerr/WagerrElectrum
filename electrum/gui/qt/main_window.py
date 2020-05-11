@@ -45,7 +45,7 @@ from pytz import timezone
 from tzlocal import get_localzone
 
 from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor,QDoubleValidator
-from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel,QSize
+from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel,QSize,pyqtSlot
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
                              QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,QLayout,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
@@ -185,6 +185,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.completions = QStringListModel()
         self.events_data = ''
         self.tabs = tabs = QTabWidget(self)
+        self.tabs.setStyleSheet("QTabWidget::pane {"
+                                "background-color: #DEE2E6;"
+                                "border:0;"
+                                "}")
         self.send_tab = self.create_send_tab()
         self.receive_tab = self.create_receive_tab()
         self.addresses_tab = self.create_addresses_tab()
@@ -1473,7 +1477,17 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         w.searchable_list = self.invoice_list
         run_hook('create_send_tab', grid)
         return w
-
+        
+    pyqtSlot(str)
+    def search_team(self,text):
+        for row in range(self.eventQListWidget.count()):
+            it = self.eventQListWidget.item(row)
+            widget = self.eventQListWidget.itemWidget(it)
+            if text: 
+                it.setHidden(not (text.lower() in widget.lblTournament.text().lower() + widget.lblHomeTeam.text().lower() + widget.lblAwayTeam.text().lower()))
+            else:
+                it.setHidden(False)
+    
     def create_betting_tab(self):
         
         self.grid_betting=QGridLayout()
@@ -1482,9 +1496,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.grid_betting.setColumnStretch(1,6.7)
         self.grid_betting.setColumnStretch(2,2)
         
-        
         self.eventQListWidget = QListWidget()
-        
         self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet("QListWidget { border:0px; background-color:#DEE2E6; } QListWidget::item { background-color:#fff}")
         self.eventQListWidget.setSpacing(10)
@@ -1554,19 +1566,26 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 "margin:0 5px;"
             "}"
         )
-        self.hbox_switch = QHBoxLayout(self.oddswitch_backg)
+        self.hbox_list_header = QHBoxLayout(self.oddswitch_backg)
+        self.hbox_list_header.addStretch(0)
+        self.team_search_box = ButtonsLineEdit()
         
-        self.hbox_switch.addStretch(5)
-        
+        self.team_search_box.setStyleSheet("background-color:white;")
+        self.team_search_box.addButton("clear.png", self.team_search_box.clear, _("Clear Search"))
+        self.team_search_box.setMinimumSize(350,35)
+        self.team_search_box.setPlaceholderText("Search by team, sport or event id.")
+        self.team_search_box.textChanged.connect(self.search_team)
         
         self.oddswitch = ToogleSwitch("","")
         self.oddswitch.setChecked(False)
         self.oddswitch.clicked.connect(self.events_list.update)
         self.oddswitch_label = QLabel("On Chain Odds / Effective Odds")
         self.oddswitch_label.setStyleSheet("font-weight: bold;color:white");
-        self.hbox_switch.addWidget(self.oddswitch_label)
-        self.hbox_switch.addWidget(self.oddswitch)
+        self.hbox_list_header.insertWidget(0,self.team_search_box)
+        self.hbox_list_header.insertWidget(2,self.oddswitch_label)
+        self.hbox_list_header.insertWidget(3,self.oddswitch)
         self.vbox_grid.addWidget(self.oddswitch_backg)
+        self.vbox_grid.addWidget(self.eventQListWidget)
 
 
         self.w =  QWidget()
@@ -3402,7 +3421,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         def on_unconf(x):
             self.config.set_key('confirmed_only', bool(x) , True)
-        conf_only = self.config.get('confirmed_only', False)
+        conf_only = self.config.get('confirmed_only', True)
         unconf_cb = QCheckBox(_('Spend only confirmed coins'))
         unconf_cb.setToolTip(_('Spend only confirmed inputs.'))
         unconf_cb.setChecked(conf_only)
