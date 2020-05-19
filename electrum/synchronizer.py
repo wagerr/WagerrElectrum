@@ -27,6 +27,7 @@ import hashlib
 from typing import Dict, List, TYPE_CHECKING, Tuple
 from collections import defaultdict
 import logging
+import json
 
 from aiorpcx import TaskGroup, run_in_thread, RPCError
 
@@ -41,6 +42,15 @@ if TYPE_CHECKING:
     from .network import Network
     from .address_synchronizer import AddressSynchronizer
 
+OUTCOME = {
+    1 : "Money Line Home",
+    2 : "Money Line Away",
+    3 : "Money Line Draw",
+    4 : "Home to Cover Spread",
+    5 : "Away to Cover Spread",
+    6 : "Total Over",
+    7 : "Total Under"
+}
 
 class SynchronizerFailure(Exception): pass
 
@@ -237,7 +247,6 @@ class Synchronizer(SynchronizerBase):
         #     raise SynchronizerFailure(f"received tx does not match expected txid ({tx_hash} != {tx.txid()})")
         tx_height = self.requested_tx.pop(tx_hash)
         self.wallet.receive_tx_callback(tx_hash, tx, tx_height)
-        
         if tx.is_betting_tx():
             try:
                 betData = await self.network.get_bet(tx_hash)
@@ -251,6 +260,20 @@ class Synchronizer(SynchronizerBase):
             finally:
                 self._requests_answered += 1
             self.wallet.receive_bet_callback(tx_hash, betData, tx_height)
+             
+            arr = [ 
+                ' EventID: ' + str(betData["event-id"]) + ' ',
+                ' League: ' + betData["tournament"] + ' ',
+                ' Home: ' + betData["home"] + ' ',
+                ' Away: ' + betData["away"] + ' ',
+                ' BetSelection: ' + OUTCOME[betData["team-to-win"]] + ' ',
+                ' BetValue: ' + str(betData["amount"]) + ' ',
+                ' Result: ' + betData["result"]
+                ]
+            betDataStr = "|".join(arr)
+
+            self.wallet.set_label(tx_hash,betDataStr)
+        
         self.logger.info(f"received tx {tx_hash} height: {tx_height} bytes: {len(tx.raw)}")
         # callbacks
         self.wallet.network.trigger_callback('new_transaction', self.wallet, tx)

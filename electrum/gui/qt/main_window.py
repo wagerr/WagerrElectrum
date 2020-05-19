@@ -1797,7 +1797,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         return outputs, fee_estimator, label, coins
 
     def read_bet_tab(self,a):
-        label = 'Betting Transaction'
+        label = None
         eventId = int(a.eventIdToBetOn)
         outcome = int(a.betOutcome)
         amount = int(a.editBettingAmount.get_amount())
@@ -2081,6 +2081,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 coro = pr.send_payment_and_receive_paymentack(str(tx), refund_address)
                 fut = asyncio.run_coroutine_threadsafe(coro, self.network.asyncio_loop)
                 ack_status, ack_msg = fut.result(timeout=20)
+                asyncio.sleep(3)
                 self.logger.info(f"Payment ACK: {ack_status}. Ack message: {ack_msg}")
             return status, msg
 
@@ -2840,7 +2841,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if not data:
             return
         # if the user scanned a bitcoin URI
-        if str(data).startswith("bitcoin:"):
+        if str(data).startswith("wagerr:"):
             self.pay_to_URI(data)
             return
         # else if the user scanned an offline signed tx
