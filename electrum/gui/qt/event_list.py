@@ -20,13 +20,25 @@ class EventListView(QListView):
         self.setStyleSheet("QListView::item:selected { background-color: #BD0000; } QListView { border:0px;background-color:#151515;color:#fff;font-weight:bold }")
         self.selectedSport = "All Events"
         self.eventQListWidget_scrollbar = self.parent.eventQListWidget.verticalScrollBar()
+        
+    def remove_expired_betwidget(self, eventId):
+        for item in [self.parent.betQListWidget.item(i) for i in range(self.parent.betQListWidget.count())]:
+            itemwidget = self.parent.betQListWidget.itemWidget(item)
+            if itemwidget.eventIdToBetOn == str(eventId):
+                item1 = self.parent.betQListWidget.takeItem(self.parent.betQListWidget.row(item))
+                del item1
+
+        
 
     def filter_events(self,event):
         odds = event["odds"]
         eventtime = event["starting"]
-
+        eventId = event["event_id"]
         moneyline = odds[0]
         m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"]
+        if not ((eventtime - 720) > time.time()):
+            self.remove_expired_betwidget(eventId)
+
         return m1 > 0 and (eventtime - 720) > time.time()
 
     def build_eventlist(self,events_data):
