@@ -97,7 +97,7 @@ class BitcoinTestnet(AbstractNet):
     DEFAULT_PORTS = {'t': '31336', 's': '31337'}
     DEFAULT_SERVERS = read_json('servers_testnet.json', {})
     #CHECKPOINTS = read_json('checkpoints_testnet.json', [])
-    VERIFICATION_BLOCK_MERKLE_ROOT = "xx"
+    VERIFICATION_BLOCK_MERKLE_ROOT = "1f2dce862ce1ff2b43f3b38f77aa925e28ed72df4bdcd1c6cfe796835b87af5f"
     VERIFICATION_BLOCK_HEIGHT = 1
 
     XPRV_HEADERS = {

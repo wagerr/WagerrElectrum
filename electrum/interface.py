@@ -52,6 +52,7 @@ from .blockchain import Blockchain
 from . import constants
 from .i18n import _
 from .logging import Logger
+from .crypto import sha256d
 
 if TYPE_CHECKING:
     from .network import Network
