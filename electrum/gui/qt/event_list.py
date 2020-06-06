@@ -35,12 +35,12 @@ class EventListView(QListView):
         eventtime = event["starting"]
         eventId = event["event_id"]
         moneyline = odds[0]
-        m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"]
-        event_expired = (eventtime - 720) < time.time()
+        m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"] #events with moneyline zero
+        event_expired = (eventtime - 720) < time.time() #events time-12min should be removed from list.
         if event_expired:
             self.remove_expired_betwidget(eventId)
 
-        return m1 > 0 and (not (eventtime - 720) > time.time())
+        return m1 > 0 and not event_expired 
 
     def build_eventlist(self,events_data):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
