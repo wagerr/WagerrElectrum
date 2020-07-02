@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetIte
 from PyQt5.QtCore import Qt, QRect, QStringListModel, QModelIndex, QItemSelectionModel,QSize
 from PyQt5 import QtGui
 import time
-from .betwidget import BetWidget
+
 
 ODDS_DIVISOR = 10000
 POINTS_DIVISOR = 10
@@ -24,89 +24,40 @@ class EventWidget(QWidget):
         
     def btnMoneyLineHomeClicked(self):
         print("Money Line Home button clicked for item : ",self.btnMoneyLineHome.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 1
-        self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblSelectedOddValue.setText(self.btnMoneyLineHome.text())
-        self.addBetWidgetItemToList()
+        self.betOutcome = 1
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnMoneyLineAwayClicked(self):
         print("Money Line Away button clicked for item : ",self.btnMoneyLineAway.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text()) 
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 2
-        self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
-        self.betWidget.lblSelectedOddValue.setText(self.btnMoneyLineAway.text())
-        self.addBetWidgetItemToList()
+        self.betOutcome = 2
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnMoneyLineDrawClicked(self):
         print("Money Line Draw button clicked for item : ", self.btnMoneyLineDraw.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 3
-        self.betWidget.lblTeam.setText(self.lblDraw.text())
-        self.betWidget.lblSelectedOddValue.setText(self.btnMoneyLineDraw.text())
-        self.addBetWidgetItemToList()
+        self.betOutcome = 3
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnSpreadHomeClicked(self):
         print("Spread Home button clicked for item : ",self.btnSpreadHome.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 4
-        self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
-        self.betWidget.lblHandicap.setHidden(False)
-        self.betWidget.lblHandicap.setText("Handicap "+ self.homeSpreadSign + self.spreadPoints)
-        self.betWidget.lblSelectedOddValue.setText(self.spreadHomeOdds)
-        self.addBetWidgetItemToList()
+        self.betOutcome = 4
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnSpreadAwayClicked(self):
         print("Spread Away button clicked for item : ",self.btnSpreadAway.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 5
-        self.betWidget.lblTeam.setText(self.lblAwayTeam.text())
-        self.betWidget.lblHandicap.setHidden(False)
-        self.betWidget.lblHandicap.setText("Handicap "+ self.awaySpreadSign + self.spreadPoints)
-        self.betWidget.lblSelectedOddValue.setText(self.spreadAwayOdds)
-        self.addBetWidgetItemToList()
+        self.betOutcome = 5
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnTotalHomeClicked(self):
         print("Total Home button clicked for item : ",self.btnTotalHome.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 6
-        self.betWidget.lblTeam.setText("Over " + self.totalPoints)
-        self.betWidget.lblSelectedOddValue.setText(self.totalsOverOdds)
-        self.addBetWidgetItemToList()
+        self.betOutcome = 6
+        self.parent.betting_main_widget.add_bet(self)
 
     def btnTotalAwayClicked(self):
         print("Total Away button clicked for item : ",self.btnTotalAway.text())
-        self.betWidget = BetWidget(self.parent)
-        self.betWidget.lblTitle.setText(self.lblHomeTeam.text() + " vs " + self.lblAwayTeam.text())  
-        self.betWidget.eventIdToBetOn = self.eventId
-        self.betWidget.betOutcome = 7
-        self.betWidget.lblTeam.setText("Under " + self.totalPoints)
-        self.betWidget.lblSelectedOddValue.setText(self.totalsUnderOdds)
-        self.addBetWidgetItemToList()
+        self.betOutcome = 7
+        self.parent.betting_main_widget.add_bet(self)
 
-    def addBetWidgetItemToList(self):
-        betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
-        #betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
-        self.betWidget.qlistItem = betQListWidgetItem #for remove item when close button click or bet done
-        self.parent.betQListWidget.addItem(betQListWidgetItem)
-        self.parent.betQListWidget.setMinimumWidth(self.parent.betQListWidget.sizeHintForColumn(0))
-        self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
-
-        self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-
+    
     def setData(self,obj):
         self.eventId = str(obj["event_id"])
         self.lblTournament = QLabel(obj["tournament"] + " " + str("(Event ID: " + str(obj["event_id"]) + ")"))

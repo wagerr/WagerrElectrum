@@ -101,7 +101,8 @@ from electrum.bet import PeerlessBet
 from PyQt5 import QtWidgets
 from .toogle_switch import ToogleSwitch
 
-from .event_list import EventListView
+from .sport_list import SportListView
+from .betting_main_widget import BettingMainWidget
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -183,7 +184,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.num_zeros = int(config.get('num_zeros', 0))
 
         self.completions = QStringListModel()
-        self.events_data = ''
+        self.sports_data = ''
         self.tabs = tabs = QTabWidget(self)
         self.tabs.setStyleSheet("QTabWidget::pane {"
                                 "background-color: #DEE2E6;"
@@ -457,8 +458,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.watching_only_changed()
         run_hook('load_wallet', wallet, self)
         # try:
-        #     self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=3))
-        #     print('Event List: ', self.events_data)
+        #     self.sports_data = self.network.run_from_another_thread(self.network.get_sports_list(timeout=3))
+        #     print('Sport List: ', self.sports_data)
         # except Exception as e:
         #     self.show_message(_("Error getting event list from network") + ":\n" + str(e))
         #     return
@@ -515,7 +516,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         msg = ''.join([
             _("You are in testnet mode."), ' ',
             _("Testnet coins are worthless."), '\n',
-            _("Testnet is separate from the main Bitcoin network. It is used for testing.")
+            _("Testnet is separate from the main Wagerr network. It is used for testing.")
         ])
         cb = QCheckBox(_("Don't show this again."))
         cb_checked = False
@@ -689,7 +690,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                            _("You do not need to perform regular backups, because your wallet can be "
                               "recovered from a secret phrase that you can memorize or write on paper.") + " " +
                            _("Startup times are instant because it operates in conjunction with high-performance "
-                              "servers that handle the most complicated parts of the Bitcoin system.") + "\n\n" +
+                              "servers that handle the most complicated parts of the Wagerr system.") + "\n\n" +
                            _("Uses icons from the Icons8 icon pack (icons8.com).")))
 
     def show_update_check(self, version=None):
@@ -907,14 +908,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.contact_list.update()
         self.invoice_list.update()
         try:
-            self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=3))
-            #print('Event List: ', self.events_data)
+            self.sports_data = self.network.run_from_another_thread(self.network.get_sports_list(timeout=3)) #sport list
+            #print('Sport List: ', self.sports_data)
         except Exception as e:
             self.logger.info(f'Error getting event list from network: {repr(e)}')
             return
 
-        self.events_list.build_eventlist(self.events_data)
-        self.events_list.update()
+        self.sports_list.build_sportlist(self.sports_data)
+        self.sports_list.update()
         self.update_completions()
 
     def create_history_tab(self):
@@ -1500,63 +1501,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet("QListWidget { border:0px; background-color:#DEE2E6; } QListWidget::item { background-color:#fff}")
         self.eventQListWidget.setSpacing(10)
-        self.betQListWidget = QListWidget()
-        
-        self.betQListWidget.setStyleSheet(
-            "QListWidget::item {"
-                "border: 1px solid #BD0000;"
-                #"border-top-color: transparent;"
-                #"border-bottom-color: transparent;"
-                "margin: 5px;"
-                "}"
-            "QListWidget::item:hover {"
-                "background: rgb(250, 218, 221);"
-            "}"
-            "QListWidget::item:selected:active{"
-                "background: rgb(250, 218, 221);"
-            "}"
-            # "QListWidget::item:selected:!active {"
-            #     "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #6ea1f1);"
-            # "}"
-        )
-
-        self.bet_slip=QLabel("BET SLIP")
-        self.bet_slip.setStyleSheet("QLabel {color : #fff  }")
-        self.bet_slip.setAlignment(Qt.AlignCenter)
-        self.clear_slip=QPushButton("CLEAR SLIP")
-        self.clear_slip.clicked.connect(self.Clear_Clicked)
-        self.w1 = QWidget()
-        self.w1.setStyleSheet(
-            "QWidget{"
-                "background-color:black;"
-            "}"
-            "QPushButton {"
-                "background-color:#BD0000;"
-                "border:1px solid #BD0000;"
-			    "padding:0.5em;"
-                "color:#ffffff;"
-                "border-radius:3px;"
-                "font-weight:bold;"
-                "text-decoration:none;"
-                "outline: 0;"
-                
-            "}"
-            "QPushButton:disabled {"
-                "background-color:#ed4c4c;"
-            "}"
-            "QPushButton:pressed {"
-                "background-color:#800a0a;"
-            "}")
-        self.hbox_slip=QHBoxLayout(self.w1)
-        self.hbox_slip.addWidget(self.bet_slip)
-        self.hbox_slip.addWidget(self.clear_slip)
-        self.hbox_slip.setAlignment(Qt.AlignTop)
         self.betting_grid = grid = QGridLayout()
-        self.vbox_b=QVBoxLayout()
-        self.vbox_b.addWidget(self.w1)
-        self.vbox_b.addWidget(self.betQListWidget)
-        self.events_list = EventListView(self)
-
+        self.sports_list = SportListView(self)
         self.vbox_grid = QVBoxLayout()
         self.oddswitch_backg = QWidget()
         self.oddswitch_backg.setContentsMargins(0,0,0,0)
@@ -1578,7 +1524,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         
         self.oddswitch = ToogleSwitch("","")
         self.oddswitch.setChecked(False)
-        self.oddswitch.clicked.connect(self.events_list.update)
+        self.oddswitch.clicked.connect(self.sports_list.update)
         self.oddswitch_label = QLabel("On Chain Odds / Effective Odds")
         self.oddswitch_label.setStyleSheet("font-weight: bold;color:white");
         self.hbox_list_header.insertWidget(0,self.team_search_box)
@@ -1587,20 +1533,20 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.vbox_grid.addWidget(self.oddswitch_backg)
         self.vbox_grid.addWidget(self.eventQListWidget)
 
+        self.betting_main_widget = BettingMainWidget(self)
+        
+        
 
         self.w =  QWidget()
-        self.grid_betting.addWidget(self.events_list,0,0)
-        self.grid_betting.addLayout(self.vbox_b,0,2)
+        self.grid_betting.addWidget(self.sports_list,0,0)
         self.grid_betting.addLayout(self.vbox_grid,0,1)
+        self.grid_betting.addWidget(self.betting_main_widget,0,2)
         #self.grid_betting.setColumnMinimumWidth(1,1120)
         
         self.w.setLayout(self.grid_betting)
         #self.w.setMinimumSize(800, 800)
         run_hook('create_betting_tab', grid)
         return self.w
-
-    def Clear_Clicked(self):
-        self.betQListWidget.clear()
 
     def spend_max(self):
         if run_hook('abort_send', self):
@@ -1798,18 +1744,29 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
     def read_bet_tab(self,a):
         label = None
-        eventId = int(a.eventIdToBetOn)
-        outcome = int(a.betOutcome)
-        amount = int(a.editBettingAmount.get_amount())
-        print("Event Id: ",eventId)
-        print("Outcome: ",outcome)
-        print("Amount: ",amount)
-
-        pb = PeerlessBet(eventId, outcome)
+        legs = []
         opCode=''
-        isPeerlessBet,opCode=PeerlessBet.ToOpCode(pb)
-        if not(isPeerlessBet) :
-            raise Exception('Error converting PeerlessBet to opcode')
+        if hasattr(a, 'legs'):
+            for l in a.legs:
+                legs.append(l)
+            
+            isParlayPeerlessBet, opCode = PeerlessBet.ParlayToOpCode(legs)
+            amount = int(a.editBettingAmount.get_amount())
+            if not(isParlayPeerlessBet):
+                raise Exception('Error converting Paylay PeerlessBets to opcode')
+
+        else:
+            eventId = int(a.eventIdToBetOn)
+            outcome = int(a.betOutcome)
+            amount = int(a.editBettingAmount.get_amount())
+            print("Event Id: ",eventId)
+            print("Outcome: ",outcome)
+            print("Amount: ",amount)
+
+            pb = PeerlessBet(eventId, outcome)
+            isPeerlessBet,opCode=PeerlessBet.ToOpCode(pb)
+            if not(isPeerlessBet) :
+                raise Exception('Error converting PeerlessBet to opcode')
         
         print('OpCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
@@ -1944,7 +1901,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 else:
                     print('do_bet sign_done else')
                     self.broadcast_transaction(tx, tx_desc)
-                    a.btnCloseClicked()
+                    
                     
         print('do_bet calling sign_tx_with_password')
         self.sign_tx_with_password(tx, sign_done, password)
@@ -2177,7 +2134,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         try:
             out = util.parse_URI(URI, self.on_pr)
         except InvalidBitcoinURI as e:
-            self.show_error(_("Error parsing URI") + f":\n{e}")
+            #self.show_error(_("Error parsing URI") + f":\n{e}") 
             return
         self.show_send_tab()
         r = out.get('r')

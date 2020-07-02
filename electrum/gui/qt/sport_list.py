@@ -12,7 +12,7 @@ from operator import itemgetter
 from collections import defaultdict
 import re , time
 
-class EventListView(QListView):
+class SportListView(QListView):
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -22,12 +22,8 @@ class EventListView(QListView):
         self.eventQListWidget_scrollbar = self.parent.eventQListWidget.verticalScrollBar()
         
     def remove_expired_betwidget(self, eventId):
-        for item in [self.parent.betQListWidget.item(i) for i in range(self.parent.betQListWidget.count())]:
-            itemwidget = self.parent.betQListWidget.itemWidget(item)
-            if itemwidget.eventIdToBetOn == str(eventId):
-                item1 = self.parent.betQListWidget.takeItem(self.parent.betQListWidget.row(item))
-                del item1
-
+        self.parent.betting_main_widget.remove_bet_by_eventId(eventId)
+        
         
 
     def filter_events(self,event):
@@ -42,16 +38,16 @@ class EventListView(QListView):
 
         return m1 > 0 and not event_expired 
 
-    def build_eventlist(self,events_data):
+    def build_sportlist(self,sports_data):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        events_data = list(filter(lambda d1: self.filter_events(d1),events_data))
+        sports_data = list(filter(lambda d1: self.filter_events(d1),sports_data))
         counts = defaultdict(int)
-        for item in events_data:
+        for item in sports_data:
             if item["sport"] == "Mixed Martial Arts":
                 item["sport"] = "MMA"
             counts[item["sport"]] += 1
 
-        counts["All Events"] = len(events_data)
+        counts["All Events"] = len(sports_data)
 
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League","Esports"]
@@ -76,7 +72,7 @@ class EventListView(QListView):
     def update(self):
         self.eventQListWidget_scroll_position = self.eventQListWidget_scrollbar.value();
         self.parent.eventQListWidget.clear()
-        event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.events_data))
+        event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.sports_data))
         sorted_data=sorted(event_data, key=lambda x: (x['starting']))
         
         if self.selectedSport=="All Events":
@@ -98,3 +94,4 @@ class EventListView(QListView):
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)
                     self.parent.eventQListWidget.setItemWidget(eventQListWidgetItem, self.cw)
         self.eventQListWidget_scrollbar.setValue(self.eventQListWidget_scroll_position)
+        self.parent.betting_main_widget.disable_All_Events() #disable events for existing parlay slip

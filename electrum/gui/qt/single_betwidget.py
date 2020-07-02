@@ -12,7 +12,7 @@ from electrum.bitcoin import COIN, is_address, TYPE_ADDRESS
 MIN_BET_AMT  = 25 #WGR
 MAX_BET_AMT  = 10000 #WGR
 
-class BetWidget(QWidget):
+class SingleBetWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
@@ -22,13 +22,16 @@ class BetWidget(QWidget):
         self.qlistItem = None
 
     def btnCloseClicked(self):
-        item = self.parent.betQListWidget.takeItem(self.parent.betQListWidget.row(self.qlistItem))
-        del item
+        self.parent.betting_main_widget.remove_bet_by_item(self.qlistItem, "single")
+        
     
     def set_labels(self):
         self.lblTitle = QLabel("")
+        self.lblTitle.setWordWrap(True)
+        self.lblTitle.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        
         self.eventIdToBetOn = ""
-        self.btnBetOutcome = 0
+        self.betOutcome = 0
 
         #Header close button
         self.btnClose = QPushButton("X")
@@ -115,8 +118,9 @@ class BetWidget(QWidget):
         betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN
         print("Betting Amount : ", betAmtInWgr)
         if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
-            self.parent.do_bet(a = self)
-            self.btnBetValue = float(self.editBettingAmount.text()) + (((float(self.editBettingAmount.text()) * (float(self.lblSelectedOddValue.text()) -1 ))) *.94 )
+            test = self.parent.do_bet(a = self)
+            self.parent.betting_main_widget.remove_bet_by_eventId(self.eventIdToBetOn)
+
             
         
     def betAmountChanged(self):
