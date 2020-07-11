@@ -595,6 +595,7 @@ class Abstract_Wallet(AddressSynchronizer):
         capital_gains = Decimal(0)
         fiat_income = Decimal(0)
         fiat_expenditures = Decimal(0)
+        flip_color = False
         h = self.get_history(domain)
         
         now = time.time()
@@ -614,65 +615,86 @@ class Abstract_Wallet(AddressSynchronizer):
             if not(tx.is_betting_tx()):
                 #print ("is not betting tx")
                 continue
-
+            
             bet_data = self.db.get_bet(tx_hash)
-            if bet_data is None or bet_data['result'] == 'pending':
+            if  isinstance(bet_data, list):
+                bet_data = bet_data[0]
+            if not bool(bet_data) or bet_data['betResultType'] == 'pending': #betResultType
                 try:
                     bet_data = self.network.run_from_another_thread(self.network.get_bet(tx_hash, timeout=10))
+                    if bool(bet_data) == False:
+                        continue
+                    
+                    bet_data = bet_data[0]
                     self.db.add_bet(tx_hash,bet_data)
                 except Exception as e:
                     self.logger.info(f'Error getting bet data from network: {repr(e)}')
                     continue
+
+            label = 'Bet Placed' if bet_data['completed'] == 'no' else 'Bet Payout'
+            self.set_label(tx_hash,label)
+            leg_count = len(bet_data['legs'])
             
-            item = {
-                'txid': tx_hash,
-                'height': height,
-                'confirmations': tx_mined_status.conf,
-                'timestamp': timestamp,
-                'incoming': True if value>0 else False,
-                'value': Satoshis(value),
-                'balance': Satoshis(balance),
-                'date': timestamp_to_datetime(timestamp),
-                'label': self.get_label(tx_hash),
-                'txpos_in_block': tx_mined_status.txpos,
-                'event_id': bet_data['event-id'],
-                'event_start_time': bet_data['starting'],
-                'home_team': bet_data['home'] if 'home' in bet_data else '',
-                'away_team': bet_data['away'] if 'away' in bet_data else '',
-                'team_to_win': bet_data['team-to-win'],
-                'bet_amount': bet_data['amount'],
-                'result': bet_data['result']
-            }
-            tx_fee = None
-            if show_fees:
-                tx_fee = self.get_tx_fee(tx)
-                item['fee'] = Satoshis(tx_fee) if tx_fee is not None else None
-            if show_addresses:
-                item['inputs'] = list(map(lambda x: dict((k, x[k]) for k in ('prevout_hash', 'prevout_n')), tx.inputs()))
-                item['outputs'] = list(map(lambda x:{'address':x.address, 'value':Satoshis(x.value)},
-                                           tx.get_outputs_for_betting()))
-                # item['outputs'] = list(map(lambda x:{'address':x.address, 'value':x.value},
-                #                            tx.get_outputs_for_betting()))
+            for index,l in enumerate(bet_data['legs']):
+                item = {
+                    'txid': tx_hash + '-' + str(index), #add leg no for make tx distinct on bet grid display
+                    'height': height,
+                    'confirmations': tx_mined_status.conf,
+                    'timestamp': timestamp,
+                    'incoming': True if value>0 else False,
+                    'value': Satoshis(value),
+                    'balance': Satoshis(balance),
+                    'date': timestamp_to_datetime(timestamp),
+                    'label': self.get_label(tx_hash),
+                    'txpos_in_block': tx_mined_status.txpos,
+                    'event_id': l['event-id'],
+                    'event_start_time': l['lockedEvent']['starting'],
+                    'spread' : "+" + str(int(l['lockedEvent']['spreadPoints'] / 10)) if l['lockedEvent']['spreadPoints'] > 0 else '' if l['lockedEvent']['spreadPoints'] == 0 else int(l['lockedEvent']['spreadPoints'] / 10) ,
+                    'home_team': l['lockedEvent']['home'] if 'home' in l['lockedEvent'] else '',
+                    'away_team': l['lockedEvent']['away'] if 'away' in l['lockedEvent'] else '',
+                    'spreadPoints': l['lockedEvent']['spreadPoints'],
+                    'team_to_win': l['outcome'],
+                    'result': l['legResultType'],
+                    'bet_amount': bet_data['amount'] if index == 0 else '',
+                    'betResultType': bet_data['betResultType'] if 'betResultType' in bet_data else '',
+                    'betType': 'parlay' if leg_count > 1 else 'single',
+                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType']=='win' else '',
+                    'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType']=='win' else '',
+                    'flip_color': flip_color
                 
-            # value may be None if wallet is not fully synchronized
-            if value is None:
-                continue
-            # fixme: use in and out values
-            if value < 0:
-                expenditures += -value
-            else:
-                income += value
-            # fiat computations
-            if fx and fx.is_enabled() and fx.get_history_config():
-                fiat_fields = self.get_tx_item_fiat(tx_hash, value, fx, tx_fee)
-                fiat_value = fiat_fields['fiat_value'].value
-                item.update(fiat_fields)
+                }
+                
+                tx_fee = None
+                if show_fees:
+                    tx_fee = self.get_tx_fee(tx)
+                    item['fee'] = Satoshis(tx_fee) if tx_fee is not None else None
+                if show_addresses:
+                    item['inputs'] = list(map(lambda x: dict((k, x[k]) for k in ('prevout_hash', 'prevout_n')), tx.inputs()))
+                    item['outputs'] = list(map(lambda x:{'address':x.address, 'value':Satoshis(x.value)},
+                                           tx.get_outputs_for_betting()))
+                    # item['outputs'] = list(map(lambda x:{'address':x.address, 'value':x.value},
+                    #                            tx.get_outputs_for_betting()))
+                
+                # value may be None if wallet is not fully synchronized
+                if value is None:
+                    continue
+                # fixme: use in and out values
                 if value < 0:
-                    capital_gains += fiat_fields['capital_gain'].value
-                    fiat_expenditures += -fiat_value
+                    expenditures += -value
                 else:
-                    fiat_income += fiat_value
-            out.append(item)
+                    income += value
+                # fiat computations
+                if fx and fx.is_enabled() and fx.get_history_config():
+                    fiat_fields = self.get_tx_item_fiat(tx_hash, value, fx, tx_fee)
+                    fiat_value = fiat_fields['fiat_value'].value
+                    item.update(fiat_fields)
+                    if value < 0:
+                        capital_gains += fiat_fields['capital_gain'].value
+                        fiat_expenditures += -fiat_value
+                    else:
+                        fiat_income += fiat_value
+                out.append(item)
+            flip_color = not flip_color #variable for setting grid item backgrounf fliping. need better idea for this.
         # add summary
         if out:
             b, v = out[0]['balance'].value, out[0]['value'].value

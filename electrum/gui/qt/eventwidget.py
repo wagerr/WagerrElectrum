@@ -10,7 +10,7 @@ import time
 
 
 ODDS_DIVISOR = 10000
-POINTS_DIVISOR = 10
+POINTS_DIVISOR = 100
 
 class EventWidget(QWidget):
     def __init__(self, parent=None):
@@ -97,18 +97,7 @@ class EventWidget(QWidget):
         self.btnMoneyLineAway.setDisabled(str(_moneyLineAwayOdds) == "0.0")
         self.btnMoneyLineDraw.setDisabled(str(_moneyLineDrawOdds) == "0.0")
         
-        self.homeSpreadSign = ""
-        if _moneyLineHomeOdds < _moneyLineAwayOdds :
-            self.homeSpreadSign = "-"
-        else:
-            self.homeSpreadSign = "+"
-
-        self.awaySpreadSign = ""
-        if _moneyLineHomeOdds > _moneyLineAwayOdds :
-            self.awaySpreadSign = "-"
-        else:
-            self.awaySpreadSign = "+"
-
+        
 
         _spreadPoints = int(obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR)
         _spreadHomeOdds = obj["odds"][1]["spreadHome"]/ODDS_DIVISOR
@@ -118,14 +107,25 @@ class EventWidget(QWidget):
             _spreadHomeOdds = _spreadHomeOdds if _spreadHomeOdds == 0 else (1 + (_spreadHomeOdds - 1) * 0.94)
             _spreadAwayOdds = _spreadAwayOdds if _spreadAwayOdds == 0 else (1 + (_spreadAwayOdds - 1) * 0.94)
             
-
-
+    
         self.spreadPoints = str(_spreadPoints)
+
+        self.spreadPointsAway = ""
+        self.spreadPointsHome = ""
+        
+        if _spreadPoints < 0 :
+            self.spreadPointsHome = str(_spreadPoints)
+            self.spreadPointsAway = "+ " + str(abs(_spreadPoints))
+            
+        else:
+            self.spreadPointsHome = "+ " + str(_spreadPoints)
+            self.spreadPointsAway = "- " + str(_spreadPoints)
+
         self.spreadHomeOdds = str("{0:.2f}".format(_spreadHomeOdds))
         self.spreadAwayOdds = str("{0:.2f}".format(_spreadAwayOdds))
         
-        self.btnSpreadHome = QPushButton(self.homeSpreadSign + self.spreadPoints + "    " + self.spreadHomeOdds if self.spreadHomeOdds != "0.00" else "-" )
-        self.btnSpreadAway = QPushButton(self.awaySpreadSign + self.spreadPoints + "    " + self.spreadAwayOdds if self.spreadAwayOdds != "0.00" else "-")
+        self.btnSpreadHome = QPushButton(self.spreadPointsHome + "    " + self.spreadHomeOdds if self.spreadHomeOdds != "0.00" else "-" )
+        self.btnSpreadAway = QPushButton(self.spreadPointsAway + "    " + self.spreadAwayOdds if self.spreadAwayOdds != "0.00" else "-")
         
         
         self.btnSpreadHome.setDisabled(self.spreadHomeOdds == "0.00")

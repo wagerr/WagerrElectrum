@@ -142,12 +142,12 @@ class BettingMainWidget(QWidget):
             if bet_event.betOutcome == 4:
                 self.single_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                 self.single_betWidget.lblHandicap.setHidden(False)
-                self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.homeSpreadSign + bet_event.spreadPoints)
+                self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsHome)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.spreadHomeOdds)
             if bet_event.betOutcome == 5:
                 self.single_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                 self.single_betWidget.lblHandicap.setHidden(False)
-                self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.awaySpreadSign + bet_event.spreadPoints)
+                self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsAway)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.spreadAwayOdds)
             if bet_event.betOutcome == 6:
                 self.single_betWidget.lblTeam.setText("Over " + bet_event.totalPoints)
@@ -182,12 +182,12 @@ class BettingMainWidget(QWidget):
                 if bet_event.betOutcome == 4:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                     self.parlay_betWidget.lblHandicap.setHidden(False)
-                    self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.homeSpreadSign + bet_event.spreadPoints)
+                    self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsHome)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.spreadHomeOdds)
                 if bet_event.betOutcome == 5:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                     self.parlay_betWidget.lblHandicap.setHidden(False)
-                    self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.awaySpreadSign + bet_event.spreadPoints)
+                    self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsAway)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.spreadAwayOdds)
                 if bet_event.betOutcome == 6:
                     self.parlay_betWidget.lblTeam.setText("Over " + bet_event.totalPoints)
@@ -269,13 +269,13 @@ class BettingMainWidget(QWidget):
     def enable_All_Events(self): 
         for item in [self.parent.eventQListWidget.item(i) for i in range(self.parent.eventQListWidget.count())]:
                 itemwidget = self.parent.eventQListWidget.itemWidget(item)
-                if itemwidget.eventId in self.parlay_bet_eventId_list:
+                if itemwidget and itemwidget.eventId in self.parlay_bet_eventId_list:
                     itemwidget.setDisabled(False) #enable all event related to parlayslip
 
     def disable_All_Events(self): 
         for item in [self.parent.eventQListWidget.item(i) for i in range(self.parent.eventQListWidget.count())]:
                 itemwidget = self.parent.eventQListWidget.itemWidget(item)
-                if itemwidget.eventId in self.parlay_bet_eventId_list:
+                if itemwidget and itemwidget.eventId in self.parlay_bet_eventId_list:
                     itemwidget.setDisabled(True) #disable all event related to parlayslip
 
     def disable_event(self, event_Id):

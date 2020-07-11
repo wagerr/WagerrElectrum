@@ -102,10 +102,15 @@ class BettingHistoryColumns(IntEnum):
     TRANSACTION_ID=10
     START_TIME=11
     BET_OUTCOME=12
-    HOME=13
-    AWAY=14
-    TWGR_AMOUNT=15
-    RESULT=16
+    SPREAD=13
+    HOME=14
+    AWAY=15
+    TWGR_AMOUNT=16
+    BET_TYPE=17
+    RESULT=18
+    PAYOUT_TX_HASH = 19
+    PAYOUT_AMOUNT = 20
+
 class BettingHistorySortModel(QSortFilterProxyModel):
     def lessThan(self, source_left: QModelIndex, source_right: QModelIndex):
         item1 = self.sourceModel().data(source_left, Qt.UserRole)
@@ -131,7 +136,6 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         self.transactions = OrderedDictWithIndex()
         self.tx_status_cache = {}  # type: Dict[str, Tuple[int, str]]
         self.summary = None
-
     def set_view(self, history_list: 'BettingHistoryList'):
         # FIXME BettingHistoryModel and BettingHistoryList mutually depend on each other.
         # After constructing both, this method needs to be called.
@@ -146,25 +150,38 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
 
     def index(self, row: int, column: int, parent: QModelIndex):
         return self.createIndex(row, column)
-
     def data(self, index: QModelIndex, role: Qt.ItemDataRole) -> QVariant:
         # note: this method is performance-critical.
         # it is called a lot, and so must run extremely fast.
         assert index.isValid()
         col = index.column()
         tx_item = self.transactions.value_from_pos(index.row())
-        
-        tx_hash = tx_item['txid']
+        tx_hash = tx_item['txid'].split('-')[0] #remove extra leg number from string
         conf = tx_item['confirmations']
         txpos = tx_item['txpos_in_block'] or 0
         height = tx_item['height']
         eventId = tx_item['event_id']
         eventTime = time.strftime('%b %d %I:%M %p', time.localtime(tx_item['event_start_time']))
+        spread = tx_item['spread']
         home = tx_item['home_team']
         away = tx_item['away_team']
         outcomeType = tx_item['team_to_win']
         twgr_amount = tx_item['bet_amount']
         result = tx_item['result']
+        betType = tx_item['betType']
+        payoutTxHash = tx_item['payoutTxHash']
+        payout = tx_item['payout']
+        
+        if(tx_item['flip_color']): #backgroun color fliping for bet list item.
+            backg_color = '#8c8c8c'
+            text_color ="#ffffff"
+        else:
+            backg_color = '#ffffff'
+            text_color ="#000000"
+
+       
+
+        
 
         try:
             status, status_str = self.tx_status_cache[tx_hash]
@@ -193,7 +210,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
                     tx_item['capital_gain'].value if 'capital_gain' in tx_item else None,
                 BettingHistoryColumns.TXID: tx_hash,
             }
-            return QVariant(d[col])
+            return QVariant(d.get(col))
         if role not in (Qt.DisplayRole, Qt.EditRole):
             if col == BettingHistoryColumns.STATUS_ICON and role == Qt.DecorationRole:
                 return QVariant(read_QIcon(TX_ICONS[status]))
@@ -215,6 +232,19 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
                     and not tx_item.get('fiat_default') and tx_item.get('fiat_value') is not None:
                 blue_brush = QBrush(QColor("#1E1EFF"))
                 return QVariant(blue_brush)
+            elif col == BettingHistoryColumns.SPREAD and role == Qt.TextAlignmentRole:
+                return QVariant(Qt.AlignCenter)
+            elif role == Qt.BackgroundRole: #set parlay bet list item background
+                backg_brush = QBrush(QColor(backg_color))
+                return QVariant(backg_brush)
+            elif col == BettingHistoryColumns.SPREAD and role == Qt.ForegroundRole:
+                text_brush = QBrush(QColor('#f00505'))
+                return QVariant(text_brush)
+            elif role == Qt.ForegroundRole:
+                text_brush = QBrush(QColor(text_color))
+                return QVariant(text_brush)
+            elif col == BettingHistoryColumns.PAYOUT_TX_HASH and not payoutTxHash == '' and role == Qt.DecorationRole:
+                return QVariant(read_QIcon('copy.png'))
             return QVariant()
         if col == BettingHistoryColumns.STATUS_TEXT:
             return QVariant(status_str)
@@ -226,6 +256,8 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             return QVariant(tx_item['txid'])
         elif col == BettingHistoryColumns.BET_OUTCOME:
             return QVariant(OUTCOME[outcomeType])
+        elif col == BettingHistoryColumns.SPREAD:
+            return QVariant(spread)
         elif col == BettingHistoryColumns.HOME:
             return QVariant(home)
         elif col == BettingHistoryColumns.AWAY:
@@ -234,8 +266,14 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             return QVariant(eventTime)
         elif col == BettingHistoryColumns.TWGR_AMOUNT:
             return QVariant(twgr_amount)
+        elif col == BettingHistoryColumns.BET_TYPE:
+            return QVariant(betType)
         elif col == BettingHistoryColumns.RESULT:
             return QVariant(result)
+        elif col == BettingHistoryColumns.PAYOUT_TX_HASH:
+            return QVariant(payoutTxHash)
+        elif col == BettingHistoryColumns.PAYOUT_AMOUNT:
+            return QVariant(payout)
         elif col == BettingHistoryColumns.COIN_VALUE:
             value = tx_item['value'].value
             v_str = self.parent.format_amount(value, is_diff=True, whitespaces=True)
@@ -317,6 +355,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         # update tx_status_cache
         self.tx_status_cache.clear()
         for txid, tx_item in self.transactions.items():
+            txid = txid.split('-')[0] #remove leg no 
             tx_mined_info = self.tx_mined_info_from_tx_item(tx_item)
             self.tx_status_cache[txid] = self.parent.wallet.get_tx_status(txid, tx_mined_info)
 
@@ -405,10 +444,14 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.TRANSACTION_ID:_('Transaction ID'),
             BettingHistoryColumns.START_TIME:_('Start Time'),
             BettingHistoryColumns.BET_OUTCOME:_('Bet Selection'),
+            BettingHistoryColumns.SPREAD:_('Spread'),
             BettingHistoryColumns.HOME:_('Home'),
             BettingHistoryColumns.AWAY:_('Away'),
             BettingHistoryColumns.TWGR_AMOUNT:_(t_label),
-            BettingHistoryColumns.RESULT:_('Result')
+            BettingHistoryColumns.BET_TYPE:_('Bet Type'),
+            BettingHistoryColumns.RESULT:_('Result'),
+            BettingHistoryColumns.PAYOUT_TX_HASH:_('Payout TX Hash'),
+            BettingHistoryColumns.PAYOUT_AMOUNT:_('Payout Amount')
 
 
 
@@ -448,7 +491,7 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
             return False
 
     def __init__(self, parent, model: BettingHistoryModel):
-        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.RESULT)
+        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.PAYOUT_TX_HASH)
         self.hm = model
         self.proxy = BettingHistorySortModel(self)
         self.proxy.setSourceModel(model)
@@ -469,7 +512,6 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
         for col in BettingHistoryColumns:
             sm = QHeaderView.Stretch if col == self.stretch_column else QHeaderView.ResizeToContents
             self.header().setSectionResizeMode(col, sm)
-
     def format_date(self, d):
         return str(datetime.date(d.year, d.month, d.day)) if d else _('None')
 
@@ -609,9 +651,6 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
             value = tx_item['value'].value
             if value is not None:
                 self.hm.update_fiat(row, index)
-        else:
-            assert False
-
     def mouseDoubleClickEvent(self, event: QMouseEvent):
         idx = self.indexAt(event.pos())
         if not idx.isValid():
@@ -620,7 +659,15 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
         if self.hm.flags(self.model().mapToSource(idx)) & Qt.ItemIsEditable:
             super().mouseDoubleClickEvent(event)
         else:
-            self.show_transaction(tx_item['txid'])
+            self.show_transaction(tx_item['txid'].split('-')[0]) #remove leg no from tx
+
+    def mousePressEvent(self,event: QMouseEvent):
+        index = self.indexAt(event.pos())
+        if not index.isValid():
+            return
+        tx_item = self.tx_item_from_proxy_row(index.row())
+        if(index.column() == BettingHistoryColumns.PAYOUT_TX_HASH): #clipboard copy tx_hash
+            self.parent.app.clipboard().setText(tx_item['payoutTxHash'])
 
     def show_transaction(self, tx_hash):
         tx = self.wallet.db.get_transaction(tx_hash)

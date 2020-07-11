@@ -430,7 +430,7 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Tuple[int, str
         if match_decoded(decoded, match):
             return TYPE_ADDRESS, hash_to_segwit_addr(decoded[1][1], witver=witver, net=net)
     
-    match = [opcodes.OP_RETURN, OPPushDataGeneric(lambda x: 2 <= x <= 16)]
+    match = [opcodes.OP_RETURN, OPPushDataGeneric(lambda x: 2 <= x <= 32)]
     
     if match_decoded(decoded, match):
         str=bh2u(_bytes)

@@ -33,10 +33,12 @@ class SportListView(QListView):
         moneyline = odds[0]
         m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"] #events with moneyline zero
         event_expired = (eventtime - 720) < time.time() #events time-12min should be removed from list.
+        #apply text search filter on event title and team names.
+        is_in_filter =  (self.parent.search_filter.lower() in event["tournament"].lower() + " " + str("(Event ID: " + str(event["event_id"]) + ")").lower() + event["teams"]["home"].lower() + event["teams"]["away"].lower())
         if event_expired:
             self.remove_expired_betwidget(eventId)
 
-        return m1 > 0 and not event_expired 
+        return m1 > 0 and not event_expired and is_in_filter
 
     def build_sportlist(self,sports_data):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)

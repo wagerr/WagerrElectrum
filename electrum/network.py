@@ -1044,8 +1044,8 @@ class Network(Logger):
 
     @best_effort_reliable
     @catch_server_exceptions
-    async def get_events_list(self, timeout=None) -> str:
-        return await self.interface.session.send_request('blockchain.event.list', timeout=timeout)
+    async def get_sports_list(self, timeout=None) -> str:
+        return await self.interface.session.send_request('blockchain.event.list', timeout=timeout) #sports list
 
     @best_effort_reliable
     @catch_server_exceptions

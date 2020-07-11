@@ -45,7 +45,7 @@ from pytz import timezone
 from tzlocal import get_localzone
 
 from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor,QDoubleValidator
-from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel,QSize,pyqtSlot
+from PyQt5.QtCore import QItemSelectionModel, QModelIndex, QRect, QSize, QSize, QStringListModel, QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
                              QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,QLayout,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
@@ -931,27 +931,27 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def create_betting_history_tab(self):
         self.betting_history_model = BettingHistoryModel(self)
         self.betting_history_list = l = BettingHistoryList(self, self.betting_history_model)
-        self.betting_history_list.setStyleSheet(
-            "QTreeView {"
-                "show-decoration-selected: 1;"
-            "}"
-            "QTreeView::item {"
-                "border: 1px solid #d9d9d9;"
-                "border-top-color: transparent;"
-                "border-bottom-color: transparent;"
-                "padding: 5px;"
-                "}"
-            "QTreeView::item:hover {"
-                "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
-                "border: 1px solid #bfcde4;"
-            "}"
-            "QTreeView::item:selected:active{"
-                "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);"
-            "}"
-            "QTreeView::item:selected:!active {"
-                "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);"
-            "}"
-            )
+        #self.betting_history_list.setStyleSheet(
+        #    "QTreeView {"
+        #        "show-decoration-selected: 1;"
+        #    "}"
+        #    "QTreeView::item {"
+        #        "border: 1px solid #d9d9d9;"
+        #        "border-top-color: transparent;"
+        #        "border-bottom-color: transparent;"
+        #        "padding: 5px;"
+        #        "}"
+        #    "QTreeView::item:hover {"
+        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
+        #        "border: 1px solid #bfcde4;"
+        #    "}"
+        #    "QTreeView::item:selected:active{"
+        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);"
+        #    "}"
+        #    "QTreeView::item:selected:!active {"
+        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);"
+        #    "}"
+        #    )
         self.betting_history_list.setAlternatingRowColors(True)
         self.betting_history_model.set_view(self.betting_history_list)
         l.searchable_list = l
@@ -1478,16 +1478,19 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         w.searchable_list = self.invoice_list
         run_hook('create_send_tab', grid)
         return w
-        
+    
     pyqtSlot(str)
-    def search_team(self,text):
-        for row in range(self.eventQListWidget.count()):
-            it = self.eventQListWidget.item(row)
-            widget = self.eventQListWidget.itemWidget(it)
-            if text: 
-                it.setHidden(not (text.lower() in widget.lblTournament.text().lower() + widget.lblHomeTeam.text().lower() + widget.lblAwayTeam.text().lower()))
-            else:
-                it.setHidden(False)
+    def search_team(self):
+        self.search_filter = self.team_search_box.text()
+        self.sports_list.update()
+
+        #for row in range(self.eventQListWidget.count()):
+            #it = self.eventQListWidget.item(row)
+            #widget = self.eventQListWidget.itemWidget(it)
+            #if text: 
+                #it.setHidden(not (text.lower() in widget.lblTournament.text().lower() + widget.lblHomeTeam.text().lower() + widget.lblAwayTeam.text().lower()))
+            #else:
+                #it.setHidden(False)
     
     def create_betting_tab(self):
         
@@ -1514,16 +1517,22 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         )
         self.hbox_list_header = QHBoxLayout(self.oddswitch_backg)
         self.hbox_list_header.addStretch(0)
+
+        self.typing_timer = QTimer()
+        self.typing_timer.setSingleShot(True)
+        self.typing_timer.timeout.connect(self.search_team)
+
         self.team_search_box = ButtonsLineEdit()
-        
+        self.search_filter = '' #global variable for event list search filter
         self.team_search_box.setStyleSheet("background-color:white;")
         self.team_search_box.addButton("clear.png", self.team_search_box.clear, _("Clear Search"))
         self.team_search_box.setMinimumSize(350,35)
         self.team_search_box.setPlaceholderText("Search by team, sport or event id.")
-        self.team_search_box.textChanged.connect(self.search_team)
+        self.team_search_box.textChanged.connect(lambda: self.typing_timer.start(500))
+       
         
         self.oddswitch = ToogleSwitch("","")
-        self.oddswitch.setChecked(False)
+        self.oddswitch.setChecked(True)
         self.oddswitch.clicked.connect(self.sports_list.update)
         self.oddswitch_label = QLabel("On Chain Odds / Effective Odds")
         self.oddswitch_label.setStyleSheet("font-weight: bold;color:white");
