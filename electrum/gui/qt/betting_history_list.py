@@ -102,7 +102,7 @@ class BettingHistoryColumns(IntEnum):
     TRANSACTION_ID=10
     START_TIME=11
     BET_OUTCOME=12
-    SPREAD=13
+    EFFECTIVE_ODDS=13
     HOME=14
     AWAY=15
     TWGR_AMOUNT=16
@@ -162,10 +162,11 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         height = tx_item['height']
         eventId = tx_item['event_id']
         eventTime = time.strftime('%b %d %I:%M %p', time.localtime(tx_item['event_start_time']))
-        spread = tx_item['spread']
         home = tx_item['home_team']
-        away = tx_item['away_team']
+        away = tx_item['away_team'] 
         outcomeType = tx_item['team_to_win']
+        effectiveOdds = tx_item['effectiveOdds']
+        points = tx_item['spreadPoints'] if outcomeType in [4,5] else tx_item['totalPoints'] if outcomeType in [6,7] else ''
         twgr_amount = tx_item['bet_amount']
         result = tx_item['result']
         betType = tx_item['betType']
@@ -232,14 +233,9 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
                     and not tx_item.get('fiat_default') and tx_item.get('fiat_value') is not None:
                 blue_brush = QBrush(QColor("#1E1EFF"))
                 return QVariant(blue_brush)
-            elif col == BettingHistoryColumns.SPREAD and role == Qt.TextAlignmentRole:
-                return QVariant(Qt.AlignCenter)
             elif role == Qt.BackgroundRole: #set parlay bet list item background
                 backg_brush = QBrush(QColor(backg_color))
                 return QVariant(backg_brush)
-            elif col == BettingHistoryColumns.SPREAD and role == Qt.ForegroundRole:
-                text_brush = QBrush(QColor('#f00505'))
-                return QVariant(text_brush)
             elif role == Qt.ForegroundRole:
                 text_brush = QBrush(QColor(text_color))
                 return QVariant(text_brush)
@@ -255,9 +251,9 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         elif col == BettingHistoryColumns.TRANSACTION_ID:
             return QVariant(tx_item['txid'])
         elif col == BettingHistoryColumns.BET_OUTCOME:
-            return QVariant(OUTCOME[outcomeType])
-        elif col == BettingHistoryColumns.SPREAD:
-            return QVariant(spread)
+            return QVariant( OUTCOME[outcomeType]+ ' ' + points )
+        elif col == BettingHistoryColumns.EFFECTIVE_ODDS:
+            return QVariant(effectiveOdds)
         elif col == BettingHistoryColumns.HOME:
             return QVariant(home)
         elif col == BettingHistoryColumns.AWAY:
@@ -444,7 +440,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.TRANSACTION_ID:_('Transaction ID'),
             BettingHistoryColumns.START_TIME:_('Start Time'),
             BettingHistoryColumns.BET_OUTCOME:_('Bet Selection'),
-            BettingHistoryColumns.SPREAD:_('Spread'),
+            BettingHistoryColumns.EFFECTIVE_ODDS:_('Effective Odds'),
             BettingHistoryColumns.HOME:_('Home'),
             BettingHistoryColumns.AWAY:_('Away'),
             BettingHistoryColumns.TWGR_AMOUNT:_(t_label),

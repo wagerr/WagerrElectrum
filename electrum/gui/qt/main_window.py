@@ -900,8 +900,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             wallet = self.wallet
         if wallet != self.wallet:
             return
+        
+        self.betting_history_model.refresh('update_tabs')  #put this to refresh first so it can fill bet label for history model
         self.history_model.refresh('update_tabs')
-        self.betting_history_model.refresh('update_tabs')
         self.request_list.update()
         self.address_list.update()
         self.utxo_list.update()
@@ -931,27 +932,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def create_betting_history_tab(self):
         self.betting_history_model = BettingHistoryModel(self)
         self.betting_history_list = l = BettingHistoryList(self, self.betting_history_model)
-        #self.betting_history_list.setStyleSheet(
-        #    "QTreeView {"
-        #        "show-decoration-selected: 1;"
-        #    "}"
-        #    "QTreeView::item {"
-        #        "border: 1px solid #d9d9d9;"
-        #        "border-top-color: transparent;"
-        #        "border-bottom-color: transparent;"
-        #        "padding: 5px;"
-        #        "}"
-        #    "QTreeView::item:hover {"
-        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
-        #        "border: 1px solid #bfcde4;"
-        #    "}"
-        #    "QTreeView::item:selected:active{"
-        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);"
-        #    "}"
-        #    "QTreeView::item:selected:!active {"
-        #        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);"
-        #    "}"
-        #    )
         self.betting_history_list.setAlternatingRowColors(True)
         self.betting_history_model.set_view(self.betting_history_list)
         l.searchable_list = l

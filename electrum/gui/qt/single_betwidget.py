@@ -119,7 +119,7 @@ class SingleBetWidget(QWidget):
         print("Betting Amount : ", betAmtInWgr)
         if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
             test = self.parent.do_bet(a = self)
-            self.parent.betting_main_widget.remove_bet_by_item(self,"single")
+            self.parent.betting_main_widget.remove_bet_by_item(self.qlistItem,"single")
 
             
         

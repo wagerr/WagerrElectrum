@@ -273,7 +273,8 @@ class BettingMainWidget(QWidget):
                     itemwidget.setDisabled(False) #enable all event related to parlayslip
 
     def disable_All_Events(self): 
-        for item in [self.parent.eventQListWidget.item(i) for i in range(self.parent.eventQListWidget.count())]:
+        if self.current_bet_type == 'parlay':
+            for item in [self.parent.eventQListWidget.item(i) for i in range(self.parent.eventQListWidget.count())]:
                 itemwidget = self.parent.eventQListWidget.itemWidget(item)
                 if itemwidget and itemwidget.eventId in self.parlay_bet_eventId_list:
                     itemwidget.setDisabled(True) #disable all event related to parlayslip

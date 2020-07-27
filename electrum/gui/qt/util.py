@@ -11,13 +11,10 @@ import webbrowser
 from functools import partial, lru_cache
 from typing import NamedTuple, Callable, Optional, TYPE_CHECKING, Union, List, Dict
 
-from PyQt5.QtGui import (QFont, QColor, QCursor, QPixmap, QStandardItem,
-                         QPalette, QIcon, QFontMetrics)
-from PyQt5.QtCore import (Qt, QPersistentModelIndex, QModelIndex, pyqtSignal,
-                          QCoreApplication, QItemSelectionModel, QThread,
-                          QSortFilterProxyModel, QSize, QLocale)
+from PyQt5.QtGui import QColor, QCursor, QFont, QFontMetrics, QIcon, QPalette, QPixmap, QStandardItem, QTextDocument
+from PyQt5.QtCore import QCoreApplication, QItemSelectionModel, QLocale, QModelIndex, QPersistentModelIndex, QRectF, QSize, QSortFilterProxyModel, QThread, Qt, pyqtSignal
 from PyQt5.QtWidgets import (QPushButton, QLabel, QMessageBox, QHBoxLayout,
-                             QAbstractItemView, QVBoxLayout, QLineEdit,
+                             QAbstractItemView, QVBoxLayout, QLineEdit,QSpacerItem,QSizePolicy,
                              QStyle, QDialog, QGroupBox, QButtonGroup, QRadioButton,
                              QFileDialog, QWidget, QToolButton, QTreeView, QPlainTextEdit,
                              QHeaderView, QApplication, QToolTip, QTreeWidget, QStyledItemDelegate)
@@ -257,6 +254,7 @@ def custom_message_box(*, icon, parent, title, text, buttons=QMessageBox.Ok,
         d.setIconPixmap(icon)
     else:
         d = QMessageBox(icon, title, str(text), buttons, parent)
+    d.setMinimumWidth(500)
     d.setWindowModality(Qt.WindowModal)
     d.setDefaultButton(defaultButton)
     if rich_text:
@@ -271,6 +269,9 @@ def custom_message_box(*, icon, parent, title, text, buttons=QMessageBox.Ok,
         d.setTextFormat(Qt.PlainText)
     if checkbox is not None:
         d.setCheckBox(checkbox)
+    horizontalSpacer = QSpacerItem(500, 0, QSizePolicy.Minimum, QSizePolicy.Expanding);
+    layout = d.layout();
+    layout.addItem(horizontalSpacer, layout.rowCount(), 0, 1, layout.columnCount())
     return d.exec_()
 
 
@@ -460,6 +461,30 @@ class ElectrumItemDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, idx):
         self.opened = QPersistentModelIndex(idx)
         return super().createEditor(parent, option, idx)
+
+    #def paint(self, painter, option, index):
+        #col =  index.column()
+        #options = option
+        
+        #if col == 12:
+            #self.initStyleOption(options, index)
+            #painter.save()
+        
+            #doc = QTextDocument()
+            #doc.setHtml(options.text)
+            #options.text = ""
+            #options.widget.style().drawControl(QStyle.CE_ItemViewItem, options, painter)
+            #painter.translate(options.rect.left(), options.rect.top())
+            #clip = QRectF(0, 0, options.rect.width(), options.rect.height())
+            #doc.drawContents(painter, clip)
+            #painter.restore()
+        #else :
+            #QStyledItemDelegate.paint(self,painter, option, index)
+     
+        
+
+        
+
 
 class MyTreeView(QTreeView):
 

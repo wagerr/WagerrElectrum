@@ -631,11 +631,33 @@ class Abstract_Wallet(AddressSynchronizer):
                     self.logger.info(f'Error getting bet data from network: {repr(e)}')
                     continue
 
-            label = 'Bet Placed' if bet_data['completed'] == 'no' else 'Bet Payout'
-            self.set_label(tx_hash,label)
+            
+            #place bet_place label for all bet tx
+            label = 'Bet Placed' 
+            tx_hash_bet = tx_hash
+            self.set_label(tx_hash_bet,label)
+            
+            #set 'bet_payout label for all bet payout tx
+            if bet_data['completed'] == 'yes' and bet_data['betResultType'] in ['win','refund'] :
+                label = 'Bet Payout'
+                tx_hash_bet_payout = bet_data['payoutTxHash']
+                self.set_label(tx_hash_bet_payout,label)
+                
+
             leg_count = len(bet_data['legs'])
             
+            outcome_prop = {
+                     1 : "homeOdds",
+                     2 : "awayOdds",
+                     3 : "drawOdds",
+                     4 : "spreadHomeOdds",
+                     5 : "spreadAwayOdds",
+                     6 : "totalOverOdds",
+                     7 : "totalUnderOdds"
+                    }
+
             for index,l in enumerate(bet_data['legs']):
+                spreadPoints = (-l['lockedEvent']['spreadPoints'] / 100) if l['outcome'] == 5 else (l['lockedEvent']['spreadPoints'] / 100)
                 item = {
                     'txid': tx_hash + '-' + str(index), #add leg no for make tx distinct on bet grid display
                     'height': height,
@@ -649,17 +671,18 @@ class Abstract_Wallet(AddressSynchronizer):
                     'txpos_in_block': tx_mined_status.txpos,
                     'event_id': l['event-id'],
                     'event_start_time': l['lockedEvent']['starting'],
-                    'spread' : "+" + str(int(l['lockedEvent']['spreadPoints'] / 10)) if l['lockedEvent']['spreadPoints'] > 0 else '' if l['lockedEvent']['spreadPoints'] == 0 else int(l['lockedEvent']['spreadPoints'] / 10) ,
+                    'spreadPoints' : "+" + str(spreadPoints) if spreadPoints > 0 else str(spreadPoints),
+                    'totalPoints' : str(l['lockedEvent']['totalPoints'] / 100),
                     'home_team': l['lockedEvent']['home'] if 'home' in l['lockedEvent'] else '',
                     'away_team': l['lockedEvent']['away'] if 'away' in l['lockedEvent'] else '',
-                    'spreadPoints': l['lockedEvent']['spreadPoints'],
                     'team_to_win': l['outcome'],
+                    'effectiveOdds': str("{0:.2f}".format(1 + ((l['lockedEvent'][outcome_prop[l['outcome']]]/10000) - 1) * 0.94)), #efective odds calculation formula
                     'result': l['legResultType'],
                     'bet_amount': bet_data['amount'] if index == 0 else '',
                     'betResultType': bet_data['betResultType'] if 'betResultType' in bet_data else '',
                     'betType': 'parlay' if leg_count > 1 else 'single',
-                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType']=='win' else '',
-                    'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType']=='win' else '',
+                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType'] in ['win','refund'] else '',
+                    'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType'] in ['win','refund'] else '',
                     'flip_color': flip_color
                 
                 }
