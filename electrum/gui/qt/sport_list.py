@@ -34,11 +34,16 @@ class SportListView(QListView):
         m1 = moneyline["mlAway"] + moneyline["mlDraw"] + moneyline["mlHome"] #events with moneyline zero
         event_expired = (eventtime - 720) < time.time() #events time-12min should be removed from list.
         #apply text search filter on event title and team names.
-        is_in_filter =  (self.parent.search_filter.lower() in event["tournament"].lower() + " " + str("(Event ID: " + str(event["event_id"]) + ")").lower() + event["teams"]["home"].lower() + event["teams"]["away"].lower())
+        
         if event_expired:
             self.remove_expired_betwidget(eventId)
 
-        return m1 > 0 and not event_expired and is_in_filter
+        return m1 > 0 and not event_expired
+    
+    def filter_events_by_search(self,event):
+        is_in_filter =  (self.parent.search_filter.lower() in event["tournament"].lower() + " " + str("(Event ID: " + str(event["event_id"]) + ")").lower() + event["teams"]["home"].lower() + event["teams"]["away"].lower())
+        return is_in_filter
+
 
     def build_sportlist(self,sports_data):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -74,7 +79,7 @@ class SportListView(QListView):
     def update(self):
         self.eventQListWidget_scroll_position = self.eventQListWidget_scrollbar.value();
         self.parent.eventQListWidget.clear()
-        event_data = list(filter(lambda d1: self.filter_events(d1),self.parent.sports_data))
+        event_data = list(filter(lambda d1: self.filter_events(d1) and self.filter_events_by_search(d1),self.parent.sports_data))
         sorted_data=sorted(event_data, key=lambda x: (x['starting']))
         
         if self.selectedSport=="All Events":

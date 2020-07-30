@@ -99,7 +99,7 @@ class EventWidget(QWidget):
         
         
 
-        _spreadPoints = int(obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR)
+        _spreadPoints = obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR
         _spreadHomeOdds = obj["odds"][1]["spreadHome"]/ODDS_DIVISOR
         _spreadAwayOdds = obj["odds"][1]["spreadAway"]/ODDS_DIVISOR
 
@@ -108,18 +108,20 @@ class EventWidget(QWidget):
             _spreadAwayOdds = _spreadAwayOdds if _spreadAwayOdds == 0 else (1 + (_spreadAwayOdds - 1) * 0.94)
             
     
-        self.spreadPoints = str(_spreadPoints)
+        self.spreadPoints = str("{0:.2f}".format(_spreadPoints))
 
         self.spreadPointsAway = ""
         self.spreadPointsHome = ""
         
-        if _spreadPoints < 0 :
-            self.spreadPointsHome = str(_spreadPoints)
-            self.spreadPointsAway = "+ " + str(abs(_spreadPoints))
-            
+        if _spreadPoints == 0:
+            self.spreadPointsHome =  self.spreadPoints
+            self.spreadPointsAway =  self.spreadPoints
+        elif _spreadPoints < 0 :
+            self.spreadPointsHome = self.spreadPoints
+            self.spreadPointsAway = "+ " + str("{0:.2f}".format(abs(_spreadPoints)))
         else:
-            self.spreadPointsHome = "+ " + str(_spreadPoints)
-            self.spreadPointsAway = "- " + str(_spreadPoints)
+            self.spreadPointsHome = "+ " + self.spreadPoints
+            self.spreadPointsAway = "- " + self.spreadPoints
 
         self.spreadHomeOdds = str("{0:.2f}".format(_spreadHomeOdds))
         self.spreadAwayOdds = str("{0:.2f}".format(_spreadAwayOdds))
