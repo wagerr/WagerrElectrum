@@ -133,28 +133,42 @@ class BettingMainWidget(QWidget):
             if bet_event.betOutcome == 1:
                 self.single_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineHome.text())
+                self.single_betWidget.onChainOddsValue = bet_event._moneyLineHomeOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._moneyLineHomeOddsE
             if bet_event.betOutcome == 2:
                 self.single_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineAway.text())
+                self.single_betWidget.onChainOddsValue = bet_event._moneyLineAwayOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._moneyLineAwayOddsE
             if bet_event.betOutcome == 3:
                 self.single_betWidget.lblTeam.setText(bet_event.lblDraw.text())
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineDraw.text())
+                self.single_betWidget.onChainOddsValue = bet_event._moneyLineDrawOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._moneyLineDrawOddsE
             if bet_event.betOutcome == 4:
                 self.single_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                 self.single_betWidget.lblHandicap.setHidden(False)
                 self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsHome)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.spreadHomeOdds)
+                self.single_betWidget.onChainOddsValue = bet_event._spreadHomeOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._spreadHomeOddsE
             if bet_event.betOutcome == 5:
                 self.single_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                 self.single_betWidget.lblHandicap.setHidden(False)
                 self.single_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsAway)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.spreadAwayOdds)
+                self.single_betWidget.onChainOddsValue = bet_event._spreadAwayOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._spreadAwayOddsE
             if bet_event.betOutcome == 6:
                 self.single_betWidget.lblTeam.setText("Over " + bet_event.totalPoints)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.totalsOverOdds)
+                self.single_betWidget.onChainOddsValue = bet_event._totalsOverOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._totalsOverOddsE
             if bet_event.betOutcome == 7:
                 self.single_betWidget.lblTeam.setText("Under " + bet_event.totalPoints)
                 self.single_betWidget.lblSelectedOddValue.setText(bet_event.totalsUnderOdds)
+                self.single_betWidget.onChainOddsValue = bet_event._totalsUnderOddsOC
+                self.single_betWidget.effectiveOddsValue = bet_event._totalsUnderOddsE
             
             single_bet_list_item = QListWidgetItem(self.bet_list_widget_single)
             single_bet_list_item.setSizeHint(self.single_betWidget.sizeHint())
@@ -169,32 +183,47 @@ class BettingMainWidget(QWidget):
                 self.parlay_betWidget.lblTitle.setText(bet_event.lblHomeTeam.text() + " vs " + bet_event.lblAwayTeam.text())  
                 self.parlay_betWidget.eventIdToBetOn = bet_event.eventId
                 self.parlay_betWidget.betOutcome = bet_event.betOutcome
+                
 
                 if bet_event.betOutcome == 1:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineHome.text())
+                    self.parlay_betWidget.onChainOddsValue = bet_event._moneyLineHomeOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._moneyLineHomeOddsE
                 if bet_event.betOutcome == 2:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineAway.text())
+                    self.parlay_betWidget.onChainOddsValue = bet_event._moneyLineAwayOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._moneyLineAwayOddsE
                 if bet_event.betOutcome == 3:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblDraw.text())
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.btnMoneyLineDraw.text())
+                    self.parlay_betWidget.onChainOddsValue = bet_event._moneyLineDrawOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._moneyLineDrawOddsE
                 if bet_event.betOutcome == 4:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblHomeTeam.text())
                     self.parlay_betWidget.lblHandicap.setHidden(False)
                     self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsHome)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.spreadHomeOdds)
+                    self.parlay_betWidget.onChainOddsValue = bet_event._spreadHomeOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._spreadHomeOddsE
                 if bet_event.betOutcome == 5:
                     self.parlay_betWidget.lblTeam.setText(bet_event.lblAwayTeam.text())
                     self.parlay_betWidget.lblHandicap.setHidden(False)
                     self.parlay_betWidget.lblHandicap.setText("Handicap "+ bet_event.spreadPointsAway)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.spreadAwayOdds)
+                    self.parlay_betWidget.onChainOddsValue = bet_event._spreadAwayOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._spreadAwayOddsE
                 if bet_event.betOutcome == 6:
                     self.parlay_betWidget.lblTeam.setText("Over " + bet_event.totalPoints)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.totalsOverOdds)
+                    self.parlay_betWidget.onChainOddsValue = bet_event._totalsOverOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._totalsOverOddsE
                 if bet_event.betOutcome == 7:
                     self.parlay_betWidget.lblTeam.setText("Under " + bet_event.totalPoints)
                     self.parlay_betWidget.lblSelectedOddValue.setText(bet_event.totalsUnderOdds)
+                    self.parlay_betWidget.onChainOddsValue = bet_event._totalsUnderOddsOC
+                    self.parlay_betWidget.effectiveOddsValue = bet_event._totalsUnderOddsE
                 
                 if bet_event.eventId in self.parlay_bet_eventId_list or len(self.parlay_bet_eventId_list) == 5:
                     return
@@ -236,6 +265,14 @@ class BettingMainWidget(QWidget):
             self.event.trigger_callback("parlay_list_updated")
             self.enable_All_Events() #enable all events when parlay list clear
             self.parlay_bet_eventId_list.clear()
+
+    def clear_both_list(self):
+        self.bet_list_widget_single.clear()
+        #parlay
+        self.bet_list_widget_parlay.clear()
+        self.event.trigger_callback("parlay_list_updated")
+        self.enable_All_Events() #enable all events when parlay list clear
+        self.parlay_bet_eventId_list.clear()
 
     def remove_bet_by_eventId(self,eventId):
         #remove expired event net slip for parlay

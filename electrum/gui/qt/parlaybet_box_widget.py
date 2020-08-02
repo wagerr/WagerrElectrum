@@ -48,7 +48,7 @@ class ParlayBetBoxWidget(QWidget):
         self.h.addWidget(self.editBettingAmount)
         
         self.h1 = QHBoxLayout()
-        self.h1.addWidget(QLabel("Total Win:"))
+        self.h1.addWidget(QLabel("Potential Returns:"))
         self.totalWin = QLabel("0.0000000 WGR")
         self.h1.addWidget(self.totalWin)
 
@@ -94,8 +94,10 @@ class ParlayBetBoxWidget(QWidget):
             bb = float(self.editBettingAmount.text())   
         
         self.odds = float(0)
+        self.effOddsSum = float(0)
         if bet_list_parlay.count() > 0:
             self.odds = float(1)
+            self.effOddsSum = float(1)
 
         for i in range(0, bet_list_parlay.count()):
             item = bet_list_parlay.item(i)
@@ -103,12 +105,16 @@ class ParlayBetBoxWidget(QWidget):
             self.odds = round(self.odds * float(itemWidget.lblSelectedOddValue.text()),2)
             
         
+        for i in range(0, bet_list_parlay.count()):
+            item = bet_list_parlay.item(i)
+            itemWidget = bet_list_parlay.itemWidget(item)
+            self.effOddsSum = round(self.effOddsSum * float(itemWidget.effectiveOddsValue),2)
         
-        self.betValue = bb + (((bb * (float(self.odds) -1 ))) *.94 )
+        self.betValue = bb + (((bb * (float(self.effOddsSum) -1 ))) *.94 )
         self.totalWin.setText(str("{0:.2f}".format(self.betValue))+ ' ' + self.parent.base_unit())
         self.totalLegs.setText("Total Legs: " + str(bet_list_parlay.count()))
         self.totalodds.setText("Total Odds: " + str(self.odds))
-        if bet_list_parlay.count() > 1 :
+        if bet_list_parlay.count() > 1 and self.lblLimitError.text() == "" and betAmtInWgr > 0 :
            self.btnBet.setDisabled(False)
         else: 
            self.btnBet.setDisabled(True)

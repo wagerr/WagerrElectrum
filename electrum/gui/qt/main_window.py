@@ -1463,15 +1463,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def search_team(self):
         self.search_filter = self.team_search_box.text()
         self.sports_list.update()
-
-        #for row in range(self.eventQListWidget.count()):
-            #it = self.eventQListWidget.item(row)
-            #widget = self.eventQListWidget.itemWidget(it)
-            #if text: 
-                #it.setHidden(not (text.lower() in widget.lblTournament.text().lower() + widget.lblHomeTeam.text().lower() + widget.lblAwayTeam.text().lower()))
-            #else:
-                #it.setHidden(False)
-    
+     
     def create_betting_tab(self):
         
         self.grid_betting=QGridLayout()
@@ -1487,15 +1479,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.betting_grid = grid = QGridLayout()
         self.sports_list = SportListView(self)
         self.vbox_grid = QVBoxLayout()
-        self.oddswitch_backg = QWidget()
-        self.oddswitch_backg.setContentsMargins(0,0,0,0)
-        self.oddswitch_backg.setStyleSheet(
+        self.list_header_backg = QWidget()
+        self.list_header_backg.setContentsMargins(0,0,0,0)
+        self.list_header_backg.setStyleSheet(
             "QWidget{"
                 "background-color:#BD0000;"
                 "margin:0 5px;"
             "}"
         )
-        self.hbox_list_header = QHBoxLayout(self.oddswitch_backg)
+        self.hbox_list_header = QHBoxLayout(self.list_header_backg)
         self.hbox_list_header.addStretch(0)
 
         self.typing_timer = QTimer()
@@ -1510,22 +1502,17 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.team_search_box.setPlaceholderText("Search by team, sport or event id.")
         self.team_search_box.textChanged.connect(lambda: self.typing_timer.start(500))
        
-        
-        self.oddswitch = ToogleSwitch("","")
-        self.oddswitch.setChecked(True)
-        self.oddswitch.clicked.connect(self.sports_list.update)
-        self.oddswitch_label = QLabel("On Chain Odds / Effective Odds")
-        self.oddswitch_label.setStyleSheet("font-weight: bold;color:white");
         self.hbox_list_header.insertWidget(0,self.team_search_box)
-        self.hbox_list_header.insertWidget(2,self.oddswitch_label)
-        self.hbox_list_header.insertWidget(3,self.oddswitch)
-        self.vbox_grid.addWidget(self.oddswitch_backg)
+        self.odds_type_label = QLabel("Current Odds Type:  " + (str("Effective") if self.config.get('iseffectiveodds',True) else str("Onchain")))
+        self.odds_type_label.setStyleSheet("font-weight:bold;color:white")
+        self.hbox_list_header.insertWidget(2,self.odds_type_label)
+        
+
+        self.vbox_grid.addWidget(self.list_header_backg)
         self.vbox_grid.addWidget(self.eventQListWidget)
 
         self.betting_main_widget = BettingMainWidget(self)
         
-        
-
         self.w =  QWidget()
         self.grid_betting.addWidget(self.sports_list,0,0)
         self.grid_betting.addLayout(self.vbox_grid,0,1)
@@ -3091,6 +3078,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         fee_widgets = []
         tx_widgets = []
         id_widgets = []
+        
 
         # language
         lang_help = _('Select which language is used in the GUI (after restart).')
@@ -3487,13 +3475,31 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         fiat_widgets.append((QLabel(_('Show Fiat balance for addresses')), fiat_address_checkbox))
         fiat_widgets.append((QLabel(_('Source')), ex_combo))
 
+
+        def on_odd_change(checked):
+            self.config.set_key('iseffectiveodds', checked)
+            self.need_restart = True
+
+        bet_widgets = []
+
+        current_odd = self.config.get("iseffectiveodds", True)
+        oddswitch = ToogleSwitch("","")
+        oddswitch.setChecked(current_odd)
+        oddswitch.clicked.connect(on_odd_change)
+        oddswitch_label = QLabel("On Chain Odds / Effective Odds")
+        oddswitch_label.setStyleSheet("font-weight: bold;")
+        bet_widgets.append((oddswitch_label,oddswitch))
+        
+        
         tabs_info = [
             (fee_widgets, _('Fees')),
             (tx_widgets, _('Transactions')),
             (gui_widgets, _('General')),
             (fiat_widgets, _('Fiat')),
             (id_widgets, _('Identity')),
+            (bet_widgets, _('Betting'))
         ]
+        
         for widgets, name in tabs_info:
             tab = QWidget()
             grid = QGridLayout(tab)

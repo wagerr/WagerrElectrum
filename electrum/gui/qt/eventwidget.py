@@ -20,7 +20,7 @@ class EventWidget(QWidget):
         self.grid.setContentsMargins(0,0,0,0)
         self.grid.setVerticalSpacing(-1)
         self.grid.setHorizontalSpacing(-1)
-        self.isEffectiveOdds = self.parent.oddswitch.isChecked()
+        self.isEffectiveOdds = self.parent.config.get('iseffectiveodds',True)
         
     def btnMoneyLineHomeClicked(self):
         print("Money Line Home button clicked for item : ",self.btnMoneyLineHome.text())
@@ -78,35 +78,42 @@ class EventWidget(QWidget):
         self.lblTotalHeading = QLabel("Total")
         self.lblDraw = QLabel("Draw")
 
+        #onchain odds
+        self._moneyLineHomeOddsOC = obj["odds"][0]["mlHome"]/ODDS_DIVISOR 
+        self._moneyLineAwayOddsOC = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
+        self._moneyLineDrawOddsOC = obj["odds"][0]["mlDraw"]/ODDS_DIVISOR
+
+        #effective odds
+        self._moneyLineHomeOddsE =  self._moneyLineHomeOddsOC if  self._moneyLineHomeOddsOC == 0 else (1 + ( self._moneyLineHomeOddsOC - 1) * 0.94) 
+        self._moneyLineAwayOddsE = self._moneyLineAwayOddsOC if self._moneyLineAwayOddsOC == 0 else (1 + (self._moneyLineAwayOddsOC - 1) * 0.94)
+        self._moneyLineDrawOddsE = self._moneyLineDrawOddsOC if self._moneyLineDrawOddsOC == 0 else (1 + (self._moneyLineDrawOddsOC - 1) * 0.94)
+
         
-        _moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR
-        _moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
-        _moneyLineDrawOdds = obj["odds"][0]["mlDraw"]/ODDS_DIVISOR
-
-        if self.isEffectiveOdds :
-            _moneyLineHomeOdds = _moneyLineHomeOdds if _moneyLineHomeOdds == 0 else (1 + (_moneyLineHomeOdds - 1) * 0.94)
-            _moneyLineAwayOdds = _moneyLineAwayOdds if _moneyLineAwayOdds == 0 else (1 + (_moneyLineAwayOdds - 1) * 0.94)
-            _moneyLineDrawOdds = _moneyLineDrawOdds if _moneyLineDrawOdds == 0 else (1 + (_moneyLineDrawOdds - 1) * 0.94)
-
+        _currentMoneyLineHomeOdds = self._moneyLineHomeOddsE if self.isEffectiveOdds else self._moneyLineHomeOddsOC
+        _currentMoneyLineAwayOdds = self._moneyLineAwayOddsE if self.isEffectiveOdds else self._moneyLineAwayOddsOC
+        _currentMoneyLineDrawOdds = self._moneyLineDrawOddsE if self.isEffectiveOdds else self._moneyLineDrawOddsOC
             
-        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(_moneyLineHomeOdds) if str(_moneyLineHomeOdds) != "0.0" else "-")))
-        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(_moneyLineAwayOdds) if str(_moneyLineAwayOdds) != "0.0" else "-")))
-        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(_moneyLineDrawOdds) if str(_moneyLineDrawOdds) != "0.0" else "-")))
+        self.btnMoneyLineHome = QPushButton(str(("{0:.2f}".format(_currentMoneyLineHomeOdds) if str(_currentMoneyLineHomeOdds) != "0.0" else "-")))
+        self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(_currentMoneyLineAwayOdds) if str(_currentMoneyLineAwayOdds) != "0.0" else "-")))
+        self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(_currentMoneyLineDrawOdds) if str(_currentMoneyLineDrawOdds) != "0.0" else "-")))
 
-        self.btnMoneyLineHome.setDisabled(str(_moneyLineHomeOdds) == "0.0")
-        self.btnMoneyLineAway.setDisabled(str(_moneyLineAwayOdds) == "0.0")
-        self.btnMoneyLineDraw.setDisabled(str(_moneyLineDrawOdds) == "0.0")
+        self.btnMoneyLineHome.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
+        self.btnMoneyLineAway.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
+        self.btnMoneyLineDraw.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
         
         
 
         _spreadPoints = obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR
-        _spreadHomeOdds = obj["odds"][1]["spreadHome"]/ODDS_DIVISOR
-        _spreadAwayOdds = obj["odds"][1]["spreadAway"]/ODDS_DIVISOR
+        #onchain
+        self._spreadHomeOddsOC = obj["odds"][1]["spreadHome"]/ODDS_DIVISOR 
+        self._spreadAwayOddsOC = obj["odds"][1]["spreadAway"]/ODDS_DIVISOR
+        
+        #effective
+        self._spreadHomeOddsE = self._spreadHomeOddsOC if self._spreadHomeOddsOC == 0 else (1 + (self._spreadHomeOddsOC - 1) * 0.94) 
+        self._spreadAwayOddsE = self._spreadAwayOddsOC if self._spreadAwayOddsOC == 0 else (1 + (self._spreadAwayOddsOC - 1) * 0.94)
 
-        if self.isEffectiveOdds :
-            _spreadHomeOdds = _spreadHomeOdds if _spreadHomeOdds == 0 else (1 + (_spreadHomeOdds - 1) * 0.94)
-            _spreadAwayOdds = _spreadAwayOdds if _spreadAwayOdds == 0 else (1 + (_spreadAwayOdds - 1) * 0.94)
-            
+        _currentSpreadHomeOdds = self._spreadHomeOddsE if self.isEffectiveOdds else self._spreadHomeOddsOC
+        _currentSpreadAwayOdds = self._spreadAwayOddsE if self.isEffectiveOdds else self._spreadAwayOddsOC
     
         self.spreadPoints = str("{0:.2f}".format(_spreadPoints))
 
@@ -123,8 +130,8 @@ class EventWidget(QWidget):
             self.spreadPointsHome = "+ " + self.spreadPoints
             self.spreadPointsAway = "- " + self.spreadPoints
 
-        self.spreadHomeOdds = str("{0:.2f}".format(_spreadHomeOdds))
-        self.spreadAwayOdds = str("{0:.2f}".format(_spreadAwayOdds))
+        self.spreadHomeOdds = str("{0:.2f}".format(_currentSpreadHomeOdds))
+        self.spreadAwayOdds = str("{0:.2f}".format(_currentSpreadAwayOdds))
         
         self.btnSpreadHome = QPushButton(self.spreadPointsHome + "    " + self.spreadHomeOdds if self.spreadHomeOdds != "0.00" else "-" )
         self.btnSpreadAway = QPushButton(self.spreadPointsAway + "    " + self.spreadAwayOdds if self.spreadAwayOdds != "0.00" else "-")
@@ -134,18 +141,22 @@ class EventWidget(QWidget):
         self.btnSpreadAway.setDisabled(self.spreadAwayOdds == "0.00")
         
         _totalPoints = obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR
-        _totalsOverOdds = obj["odds"][2]["totalsOver"]/ODDS_DIVISOR
-        _totalsUnderOdds = obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR
 
-        if self.isEffectiveOdds :
-            _totalsOverOdds = _totalsOverOdds if _totalsOverOdds == 0 else (1 + (_totalsOverOdds - 1) * 0.94)
-            _totalsUnderOdds = _totalsUnderOdds if _totalsUnderOdds == 0 else (1 + (_totalsUnderOdds - 1) * 0.94)
+        #onchain
+        self._totalsOverOddsOC = obj["odds"][2]["totalsOver"]/ODDS_DIVISOR  
+        self._totalsUnderOddsOC = obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR
+
+        #effective
+        self._totalsOverOddsE = self._totalsOverOddsOC if self._totalsOverOddsOC == 0 else (1 + (self._totalsOverOddsOC - 1) * 0.94) 
+        self._totalsUnderOddsE = self._totalsUnderOddsOC if self._totalsUnderOddsOC == 0 else (1 + (self._totalsUnderOddsOC - 1) * 0.94)
            
+        _currentTotalsOverOdds = self._totalsOverOddsE if self.isEffectiveOdds else self._totalsOverOddsOC
+        _currentTotalsUnderOdds = self._totalsUnderOddsE if self.isEffectiveOdds else self._totalsUnderOddsOC
         
 
         self.totalPoints = str("{0:.1f}".format(_totalPoints))
-        self.totalsOverOdds = str("{0:.2f}".format(_totalsOverOdds))
-        self.totalsUnderOdds = str("{0:.2f}".format(_totalsUnderOdds))
+        self.totalsOverOdds = str("{0:.2f}".format(_currentTotalsOverOdds))
+        self.totalsUnderOdds = str("{0:.2f}".format(_currentTotalsUnderOdds))
 
         overTotalPointText = "(O" + self.totalPoints + ")"
         underTotalPointText = "(U" + self.totalPoints + ")"

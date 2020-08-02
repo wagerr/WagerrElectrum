@@ -66,9 +66,10 @@ class SportListView(QListView):
                             QStandardItem(read_QIcon(''.join([s,".png"]))," {0} ({1})".format(s,str(counts[s] or "0")))
                             ])
         self.setModel(model)
-        self.selectionModel().currentRowChanged.connect(self.item_changed)
+        self.selectionModel().selectionChanged.connect(self.item_changed)
 
-    def item_changed(self, idx):
+    def item_changed(self, newIdx,oldIdx = None):
+        idx = newIdx.indexes()[0]
         sport = self.model().itemFromIndex(idx)
         self.selectedSport = re.sub(r'\([^)]*\)', '', sport.text()).strip()
         print("Selected Sport : ", self.selectedSport)

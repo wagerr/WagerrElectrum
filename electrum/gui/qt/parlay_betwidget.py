@@ -21,6 +21,10 @@ class ParlayBetWidget(QWidget):
         self.eventIdToBetOn = ""
         self.betOutcome = 0
 
+        #require for bet_box odds and potential return calculation.
+        self.onChainOddsValue = float(0)
+        self.effectiveOddsValue = float(0)
+
         #Header close button
         self.btnClose = QPushButton("X")
         self.btnClose.setMaximumSize(30,30)

@@ -33,6 +33,10 @@ class SingleBetWidget(QWidget):
         self.eventIdToBetOn = ""
         self.betOutcome = 0
 
+        #require for potential return calculation.
+        self.onChainOddsValue = float(0)
+        self.effectiveOddsValue = float(0)
+
         #Header close button
         self.btnClose = QPushButton("X")
         self.btnClose.setMaximumSize(30,30)
@@ -134,5 +138,5 @@ class SingleBetWidget(QWidget):
             bb = float(0)
         else:
             bb = float(self.editBettingAmount.text())        
-        self.btnBetValue = bb + (((bb * (float(self.lblSelectedOddValue.text()) -1 ))) *.94 )
+        self.btnBetValue = bb + (((bb * (float(self.effectiveOddsValue) -1 ))) *.94 )
         self.lblPotentialReturnValue.setText(str("{0:.2f}".format(self.btnBetValue))+ ' ' + self.parent.base_unit())
