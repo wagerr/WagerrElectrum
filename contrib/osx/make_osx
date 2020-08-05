@@ -3,7 +3,7 @@
 # Parameterize
 PYTHON_VERSION=3.6.4
 BUILDDIR=/tmp/electrum-build
-PACKAGE=Electrum
+PACKAGE=Electrum-Wagerr
 GIT_REPO=https://github.com/wagerr/Wagerr-Electrum
 LIBSECP_VERSION="b408c6a8b287003d1ade5709e6f7bc3c7f1d5be7"
 
@@ -23,23 +23,21 @@ which brew > /dev/null 2>&1 || fail "Please install brew from https://brew.sh/ t
 which xcodebuild > /dev/null 2>&1 || fail "Please install Xcode and xcode command line tools to continue"
 
 # Code Signing: See https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html
-APP_SIGN=""
-if [ -n "$1" ]; then
+if [ -n "$CODESIGN_CERT" ]; then
     # Test the identity is valid for signing by doing this hack. There is no other way to do this.
     cp -f /bin/ls ./CODESIGN_TEST
-    codesign -s "$1" --dryrun -f ./CODESIGN_TEST > /dev/null 2>&1
+    codesign -s "$CODESIGN_CERT" --dryrun -f ./CODESIGN_TEST > /dev/null 2>&1
     res=$?
     rm -f ./CODESIGN_TEST
     if ((res)); then
-        fail "Code signing identity \"$1\" appears to be invalid."
+        fail "Code signing identity \"$CODESIGN_CERT\" appears to be invalid."
     fi
     unset res
-    APP_SIGN="$1"
-    info "Code signing enabled using identity \"$APP_SIGN\""
+    info "Code signing enabled using identity \"$CODESIGN_CERT\""
 else
     warn "Code signing DISABLED. Specify a valid macOS Developer identity installed on the system as the first argument to this script to enable signing."
 fi
-
+: <<'END'
 info "Installing Python $PYTHON_VERSION"
 export PATH="~/.pyenv/bin:~/.pyenv/shims:~/Library/Python/3.6/bin:$PATH"
 if [ -d "~/.pyenv" ]; then
@@ -115,7 +113,7 @@ rm -fr build
 # prefer building using xcode ourselves. otherwise fallback to prebuilt binary
 xcodebuild || cp -r prebuilt_qr build || fail "Could not build CalinsQRReader"
 popd
-DoCodeSignMaybe "CalinsQRReader.app" "${d}/build/Release/CalinsQRReader.app" "$APP_SIGN" # If APP_SIGN is empty will be a noop
+DoCodeSignMaybe "CalinsQRReader.app" "${d}/build/Release/CalinsQRReader.app" "$CODESIGN_CERT" # If $CODESIGN_CERT is empty will be a noop
 
 
 info "Installing requirements..."
@@ -137,22 +135,59 @@ for d in ~/Library/Python/ ~/.pyenv .; do
 done
 
 info "Building binary"
-APP_SIGN="$APP_SIGN" pyinstaller --noconfirm --ascii --clean --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
+APP_SIGN="$CODESIGN_CERT" pyinstaller --noconfirm --ascii --clean --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
 
-info "Adding wagerr URI types to Info.plist"
+info "Adding wagerr mainnet URI types to Info.plist"
 plutil -insert 'CFBundleURLTypes' \
 	-xml '<array><dict> <key>CFBundleURLName</key> <string>wagerr</string> <key>CFBundleURLSchemes</key> <array><string>wagerr</string></array> </dict></array>' \
 	-- dist/$PACKAGE.app/Contents/Info.plist \
 	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
 
-DoCodeSignMaybe "app bundle" "dist/${PACKAGE}.app" "$APP_SIGN" # If APP_SIGN is empty will be a noop
+info "Adding wagerr testnet URI types to Info.plist"
+plutil -insert 'CFBundleURLTypes' \
+	-xml '<array><dict> <key>CFBundleURLName</key> <string>wagerr</string> <key>CFBundleURLSchemes</key> <array><string>wagerr</string></array> </dict></array>' \
+	-- dist/$PACKAGE-testnet.app/Contents/Info.plist \
+	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
 
-info "Creating .DMG"
-hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-$VERSION.dmg || fail "Could not create .DMG"
+info "App sign package mainnet"
+DoCodeSignMaybe "app bundle" "dist/${PACKAGE}.app" "$CODESIGN_CERT" # If $CODESIGN_CERT is empty will be a noop
 
-DoCodeSignMaybe ".DMG" "dist/electrum-${VERSION}.dmg" "$APP_SIGN" # If APP_SIGN is empty will be a noop
+info "App sign package testnet"
+DoCodeSignMaybe "app bundle" "dist/${PACKAGE}-testnet.app" "$CODESIGN_CERT" # If $CODESIGN_CERT is empty will be a noop
 
-if [ -z "$APP_SIGN" ]; then
+if [ ! -z "$CODESIGN_CERT" ]; then
+    if [ ! -z "$APPLE_ID_USER" ]; then
+        info "Notarizing .app with Apple's central server..."
+        "${CONTRIB_OSX}/notarize_app.sh" "dist/${PACKAGE}.app" || fail "Could not notarize binary."
+    else
+        warn "AppleID details not set! Skipping Apple notarization."
+    fi
+fi
+
+if [ ! -z "$CODESIGN_CERT" ]; then
+    if [ ! -z "$APPLE_ID_USER" ]; then
+        info "Notarizing .app with Apple's central server..."
+        "${CONTRIB_OSX}/notarize_app.sh" "dist/${PACKAGE}-testnet.app" || fail "Could not notarize binary."
+    else
+        warn "AppleID details not set! Skipping Apple notarization."
+    fi
+fi
+
+END
+
+info "Creating .DMG mainnet"
+hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-wagerr-$VERSION.dmg || fail "Could not create .DMG"
+
+info "Creating .DMG testnet"
+hdiutil create -fs HFS+ -volname $PACKAGE-testnet -srcfolder dist/$PACKAGE-testnet.app dist/electrum-wagerr-testnet-$VERSION.dmg || fail "Could not create .DMG"
+
+info "Signing .DMG mainnet"
+DoCodeSignMaybe ".DMG" "dist/electrum-wagerr-${VERSION}.dmg" "$CODESIGN_CERT" # If $CODESIGN_CERT is empty will be a noop
+
+info "Signing .DMG testnet"
+DoCodeSignMaybe ".DMG" "dist/electrum-wagerr-testnet-${VERSION}.dmg" "$CODESIGN_CERT" # If $CODESIGN_CERT is empty will be a noop
+
+if [ -z "$CODESIGN_CERT" ]; then
     warn "App was built successfully but was not code signed. Users may get security warnings from macOS."
     warn "Specify a valid code signing identity as the first argument to this script to enable code signing."
 fi

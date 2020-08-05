@@ -4,7 +4,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, coll
 
 import sys, os
 
-PACKAGE='Electrum'
+PACKAGE='Electrum-Wagerr'
 PYPKG='electrum'
 MAIN_SCRIPT='run_electrum'
 ICONS_FILE=PYPKG + '/gui/icons/electrum.icns'
@@ -159,5 +159,27 @@ app = BUNDLE(exe,
              info_plist={
                 'NSHighResolutionCapable': 'True',
                 'NSSupportsAutomaticGraphicsSwitching': 'True'
-             }
-)
+             })
+
+exe_testnet = EXE(pyz,
+          a.scripts,
+          a.binaries,
+          a.datas,
+          name=PACKAGE + "-testnet",
+          debug=False,
+          strip=False,
+          upx=True,
+          icon=electrum+ICONS_FILE,
+          console=False)
+
+
+
+app_testnet = BUNDLE(exe_testnet,
+             version = VERSION,
+             name=PACKAGE + "-testnet" + '.app',
+             icon=electrum+ICONS_FILE,
+             bundle_identifier=None,
+             info_plist={
+                'NSHighResolutionCapable': 'True',
+                'NSSupportsAutomaticGraphicsSwitching': 'True'
+             })
