@@ -1,13 +1,18 @@
+# needed by pyinstaller
+pefile>=2017.8.1
+altgraph
+pywin32-ctypes>=0.2.0
+
 pyaes>=0.1a1
-ecdsa>=0.13
+ecdsa>=0.14
 qrcode
-protobuf
-dnspython
+protobuf>=3.12
+dnspython<2.0
 jsonrpclib-pelix
-qdarkstyle<2.7
+qdarkstyle<2.9
 aiorpcx>=0.18,<0.19
 aiohttp>=3.3.0,<4.0.0
-aiohttp_socks
+aiohttp_socks>=0.3
 certifi
 pytz
 tzlocal

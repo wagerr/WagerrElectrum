@@ -46,8 +46,8 @@ popd
 $PYTHON -m pip install --no-warn-script-location -r "$CONTRIB"/deterministic-build/requirements.txt
 
 # Workaround until they upload binary wheels themselves:
- wget 'https://raw.githubusercontent.com/wagerr/Wagerr-Electrum/master/contrib/build-wine/quark_hash-1.0-cp36-cp36m-win32.whl' -O quark_hash-1.0-cp36-cp36m-win32.whl
- $PYTHON -m pip install ./quark_hash-1.0-cp36-cp36m-win32.whl
+ wget 'https://raw.githubusercontent.com/wagerr/Wagerr-Electrum/master/contrib/build-wine/quark_hash-1.0-cp37-cp37m-win32.whl' -O quark_hash-1.0-cp37-cp37m-win32.whl
+ $PYTHON -m pip install ./quark_hash-1.0-cp37-cp37m-win32.whl
 
 $PYTHON -m pip install --no-warn-script-location -r "$CONTRIB"/deterministic-build/requirements-hw.txt
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Parameterize
-PYTHON_VERSION=3.6.4
+PYTHON_VERSION=3.7.7
 BUILDDIR=/tmp/electrum-build
 PACKAGE=Electrum-Wagerr
 GIT_REPO=https://github.com/wagerr/Wagerr-Electrum
@@ -37,9 +37,9 @@ if [ -n "$CODESIGN_CERT" ]; then
 else
     warn "Code signing DISABLED. Specify a valid macOS Developer identity installed on the system as the first argument to this script to enable signing."
 fi
-: <<'END'
+#: <<'END' start comment block
 info "Installing Python $PYTHON_VERSION"
-export PATH="~/.pyenv/bin:~/.pyenv/shims:~/Library/Python/3.6/bin:$PATH"
+export PATH="~/.pyenv/bin:~/.pyenv/shims:~/Library/Python/3.7/bin:$PATH"
 if [ -d "~/.pyenv" ]; then
   pyenv update
 else
@@ -57,7 +57,7 @@ python3 -m pip install -Ir ./contrib/deterministic-build/requirements-binaries.t
 
 
 info "Installing pyinstaller"
-python3 -m pip install -I --user pyinstaller==3.4 --no-use-pep517 || fail "Could not install pyinstaller"
+python3 -m pip install -I --user pyinstaller==3.6 --no-use-pep517 || fail "Could not install pyinstaller"
 
 info "Using these versions for building $PACKAGE:"
 sw_vers
@@ -88,10 +88,10 @@ info "generating locale"
 
 
 info "Downloading libusb..."
-curl https://homebrew.bintray.com/bottles/libusb-1.0.22.el_capitan.bottle.tar.gz | \
+curl https://homebrew.bintray.com/bottles/libusb-1.0.23.high_sierra.bottle.tar.gz | \
 tar xz --directory $BUILDDIR
-cp $BUILDDIR/libusb/1.0.22/lib/libusb-1.0.dylib contrib/osx
-echo "82c368dfd4da017ceb32b12ca885576f325503428a4966cc09302cbd62702493  contrib/osx/libusb-1.0.dylib" | \
+cp $BUILDDIR/libusb/1.0.23/lib/libusb-1.0.dylib contrib/osx
+echo "caea266f3fc3982adc55d6cb8d9bad10f6e61f0c24ce5901aa1804618e08e14d  contrib/osx/libusb-1.0.dylib" | \
     shasum -a 256 -c || fail "libusb checksum mismatched"
 
 info "Building libsecp256k1"
@@ -173,7 +173,7 @@ if [ ! -z "$CODESIGN_CERT" ]; then
     fi
 fi
 
-END
+#END end comment block
 
 info "Creating .DMG mainnet"
 hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-wagerr-$VERSION.dmg || fail "Could not create .DMG"
