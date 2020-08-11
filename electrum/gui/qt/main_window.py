@@ -141,11 +141,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.gui_object = gui_object
         self.config = config = gui_object.config  # type: SimpleConfig
         self.gui_thread = gui_object.gui_thread
-
-        dw = QDesktopWidget()
-        x=dw.width()*0.9
-        y=dw.height()*0.9
-        self.setMinimumSize(x,y)
         
         self.hbox=QHBoxLayout()
 
