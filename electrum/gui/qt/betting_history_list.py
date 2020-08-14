@@ -418,10 +418,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         fiat_title = 'n/a fiat value'
         fiat_acq_title = 'n/a fiat acquisition price'
         fiat_cg_title = 'n/a fiat capital gains'
-        if constants.net.TESTNET:
-            t_label='tWGR Amount'
-        else:
-            t_label='WGR Amount'
+        t_label= constants.net.SYMBOL + ' Amount'
         if fx and fx.show_history():
             fiat_title = '%s '%fx.ccy + _('Value')
             fiat_acq_title = '%s '%fx.ccy + _('Acquisition price')

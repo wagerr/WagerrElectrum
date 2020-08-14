@@ -64,10 +64,14 @@ def inv_dict(d):
 
 ca_path = certifi.where()
 
-
-base_units = {'WGR':8, 'mWGR':5, 'uWGR':2}
-base_units_inverse = inv_dict(base_units)
-base_units_list = ['WGR', 'mWGR', 'uWGR']  # list(dict) does not guarantee order
+def base_units(): 
+    from . import constants
+    return {'tWGR':8, 'mtWGR':5, 'utWGR':2} if constants.net.TESTNET else {'WGR':8, 'mWGR':5, 'uWGR':2}
+def base_units_inverse():
+    return inv_dict(base_units())
+def base_units_list():
+    from . import constants
+    return ['tWGR', 'mtWGR', 'utWGR']  if constants.net.TESTNET else ['WGR', 'mWGR', 'uWGR']  # list(dict) does not guarantee order
 
 DECIMAL_POINT_DEFAULT = 8  # WGR
 
@@ -77,7 +81,7 @@ class UnknownBaseUnit(Exception): pass
 def decimal_point_to_base_unit_name(dp: int) -> str:
     # e.g. 8 -> "BTC"
     try:
-        return base_units_inverse[dp]
+        return base_units_inverse()[dp]
     except KeyError:
         raise UnknownBaseUnit(dp) from None
 
@@ -85,7 +89,7 @@ def decimal_point_to_base_unit_name(dp: int) -> str:
 def base_unit_name_to_decimal_point(unit_name: str) -> int:
     # e.g. "BTC" -> 8
     try:
-        return base_units[unit_name]
+        return base_units()[unit_name]
     except KeyError:
         raise UnknownBaseUnit(unit_name) from None
 

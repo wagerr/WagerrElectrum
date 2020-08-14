@@ -3216,9 +3216,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         SSL_id_e.setReadOnly(True)
         id_widgets.append((SSL_id_label, SSL_id_e))
 
-        units = base_units_list
+        units = base_units_list()
         msg = (_('Base unit of your wallet.')
-               + '\n1 WGR = 1000 mWGR.\n'
+               + '\n1 {} = 1000 m{}.\n'.format(constants.net.SYMBOL,constants.net.SYMBOL)
                + _('This setting affects the Send tab, and all balance related fields.'))
         unit_label = HelpLabel(_('Base unit') + ':', msg)
         unit_combo = QComboBox()

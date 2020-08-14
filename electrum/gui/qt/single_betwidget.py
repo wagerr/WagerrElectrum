@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt, QRect, QStringListModel, QModelIndex, QItemSelectio
 from PyQt5.QtGui import QFont, QDoubleValidator
 from .amountedit import AmountEdit, BTCAmountEdit
 from electrum.bitcoin import COIN, is_address, TYPE_ADDRESS
+from electrum import constants
 
 MIN_BET_AMT  = 25 #WGR
 MAX_BET_AMT  = 10000 #WGR
@@ -43,7 +44,7 @@ class SingleBetWidget(QWidget):
         self.btnClose.clicked.connect(self.btnCloseClicked)
 
         #Error on Bet Amount Limit
-        self.errText = "Incorrect bet amount. Please ensure your bet is between 25-10000 WGR inclusive."
+        self.errText = "Incorrect bet amount. Please ensure your bet is between 25-10000 {} inclusive.".format(constants.net.SYMBOL)
         self.lblLimitError = QLabel(self.errText)
         self.lblLimitError.setStyleSheet("font-weight: bold;")
         
@@ -53,7 +54,7 @@ class SingleBetWidget(QWidget):
         self.lblPotentialReturn = QLabel("Potential Returns:")
         self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
         
-        self.lblPotentialReturnValue = QLabel("0 WGR")
+        self.lblPotentialReturnValue = QLabel("0 {}".format(constants.net.SYMBOL))
         self.lblPotentialReturnValue.setStyleSheet("color:#BD0000;font-weight: bold;")
         self.lblPotentialReturnValue.setAlignment(Qt.AlignHCenter)
 

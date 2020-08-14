@@ -64,6 +64,7 @@ class BitcoinMainnet(AbstractNet):
     #CHECKPOINTS = read_json('checkpoints.json', [])
     VERIFICATION_BLOCK_MERKLE_ROOT = "000007b9191bc7a17bfb6cedf96a8dacebb5730b498361bf26d44a9f9dcc1079"
     VERIFICATION_BLOCK_HEIGHT = 0
+    SYMBOL = 'WGR'
 
     XPRV_HEADERS = {
         'standard':    0x0221312B,  # xprv
@@ -99,6 +100,7 @@ class BitcoinTestnet(AbstractNet):
     #CHECKPOINTS = read_json('checkpoints_testnet.json', [])
     VERIFICATION_BLOCK_MERKLE_ROOT = "1f2dce862ce1ff2b43f3b38f77aa925e28ed72df4bdcd1c6cfe796835b87af5f"
     VERIFICATION_BLOCK_HEIGHT = 1
+    SYMBOL = 'tWGR'
 
     XPRV_HEADERS = {
         'standard':    0x3A805837,  # tprv

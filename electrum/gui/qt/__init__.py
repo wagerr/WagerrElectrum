@@ -102,6 +102,9 @@ class ElectrumGui(Logger):
         self.windows = []
         self.efilter = OpenFileEventFilter(self.windows)
         self.app = QElectrumApplication(sys.argv)
+        #new_font = self.app.font();
+        #new_font.setPointSize(13)
+        #self.app.setFont( new_font)
         self.app.installEventFilter(self.efilter)
         self.app.setWindowIcon(read_QIcon("electrum.png"))
         # timer

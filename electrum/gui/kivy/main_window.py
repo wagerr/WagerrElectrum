@@ -196,7 +196,7 @@ class ElectrumWindow(App):
             return decimal_point_to_base_unit_name(DECIMAL_POINT_DEFAULT)
 
     def _set_bu(self, value):
-        assert value in base_units.keys()
+        assert value in base_units().keys()
         decimal_point = base_unit_name_to_decimal_point(value)
         self.electrum_config.set_key('decimal_point', decimal_point, True)
         self._trigger_update_status()
@@ -210,7 +210,7 @@ class ElectrumWindow(App):
         self._trigger_update_history()
 
     def decimal_point(self):
-        return base_units[self.base_unit]
+        return base_units()[self.base_unit]
 
     def btc_to_fiat(self, amount_str):
         if not amount_str:

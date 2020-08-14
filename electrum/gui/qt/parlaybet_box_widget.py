@@ -7,6 +7,7 @@ from electrum.gui.qt.amountedit import AmountEdit, BTCAmountEdit
 from PyQt5.QtGui import QDoubleValidator
 from PyQt5 import QtCore
 from electrum.event import Event
+from electrum import constants
 
 MIN_BET_AMT  = 25 #WGR
 MAX_BET_AMT  = 10000 #WGR
@@ -49,10 +50,10 @@ class ParlayBetBoxWidget(QWidget):
         
         self.h1 = QHBoxLayout()
         self.h1.addWidget(QLabel("Potential Returns:"))
-        self.totalWin = QLabel("0.0000000 WGR")
+        self.totalWin = QLabel("0.0000000 {}".format(constants.net.SYMBOL))
         self.h1.addWidget(self.totalWin)
 
-        self.errText = "Incorrect bet amount. Please ensure your bet is between 25-10000 WGR inclusive."
+        self.errText = "Incorrect bet amount. Please ensure your bet is between 25-10000 {} inclusive.".format(constants.net.SYMBOL)
         self.lblLimitError = QLabel(self.errText)
         self.lblLimitError.setStyleSheet("font-weight: bold;")
         

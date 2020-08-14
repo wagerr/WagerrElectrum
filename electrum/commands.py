@@ -45,6 +45,7 @@ from .paymentrequest import PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .synchronizer import Notifier
 from .wallet import Abstract_Wallet, create_new_wallet, restore_wallet_from_text
 from .address_synchronizer import TX_HEIGHT_LOCAL
+from electrum import constants
 
 if TYPE_CHECKING:
     from .network import Network
@@ -788,8 +789,8 @@ param_descriptions = {
     'pubkey': 'Public key',
     'message': 'Clear text message. Use quotes if it contains spaces.',
     'encrypted': 'Encrypted message',
-    'amount': 'Amount to be sent (in WGR). Type \'!\' to send the maximum available.',
-    'requested_amount': 'Requested amount (in WGR).',
+    'amount': 'Amount to be sent (in {}). Type \'!\' to send the maximum available.'.format(constants.net.SYMBOL),
+    'requested_amount': 'Requested amount (in {}).'.format(constants.net.SYMBOL),
     'outputs': 'list of ["address", amount]',
     'redeem_script': 'redeem script (hexadecimal)',
 }
