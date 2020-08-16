@@ -135,9 +135,7 @@ class SingleBetWidget(QWidget):
         else:
             self.lblLimitError.setText(self.errText)
         bb = float(0)
-        if self.editBettingAmount.text() == "":
-            bb = float(0)
-        else:
-            bb = float(self.editBettingAmount.text())        
-        self.btnBetValue = bb + (((bb * (float(self.effectiveOddsValue) -1 ))) *.94 )
+        if not self.editBettingAmount.text() == "":
+            bb = float(self.editBettingAmount.text())
+        self.btnBetValue = bb * float(self.effectiveOddsValue)
         self.lblPotentialReturnValue.setText(str("{0:.2f}".format(self.btnBetValue))+ ' ' + self.parent.base_unit())

@@ -638,7 +638,9 @@ class Abstract_Wallet(AddressSynchronizer):
             self.set_label(tx_hash_bet,label)
             
             #set 'bet_payout label for all bet payout tx
-            if bet_data['completed'] == 'yes' and bet_data['betResultType'] in ['win','refund'] :
+            betResultTypes = ['win','refund','half-win','half-lose','partial-win','partial-lose']
+
+            if bet_data['completed'] == 'yes' and bet_data['betResultType'] in betResultTypes:
                 label = 'Bet Payout'
                 tx_hash_bet_payout = bet_data['payoutTxHash']
                 self.set_label(tx_hash_bet_payout,label)
@@ -681,8 +683,8 @@ class Abstract_Wallet(AddressSynchronizer):
                     'bet_amount': bet_data['amount'] if index == 0 else '',
                     'betResultType': bet_data['betResultType'] if 'betResultType' in bet_data else '',
                     'betType': 'parlay' if leg_count > 1 else 'single',
-                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType'] in ['win','refund'] else '',
-                    'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType'] in ['win','refund'] else '',
+                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType'] in betResultTypes else '',
+                    'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType'] in betResultTypes else '',
                     'flip_color': flip_color
                 
                 }

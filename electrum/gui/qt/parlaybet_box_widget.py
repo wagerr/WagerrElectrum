@@ -89,10 +89,8 @@ class ParlayBetBoxWidget(QWidget):
         else:
             self.lblLimitError.setText(self.errText)
         bb = float(0)
-        if self.editBettingAmount.text() == "":
-            bb = float(0)
-        else:
-            bb = float(self.editBettingAmount.text())   
+        if not self.editBettingAmount.text() == "":
+            bb = float(self.editBettingAmount.text())
         
         self.odds = float(0)
         self.effOddsSum = float(0)
@@ -111,7 +109,7 @@ class ParlayBetBoxWidget(QWidget):
             itemWidget = bet_list_parlay.itemWidget(item)
             self.effOddsSum = round(self.effOddsSum * float(itemWidget.effectiveOddsValue),2)
         
-        self.betValue = bb + (((bb * (float(self.effOddsSum) -1 ))) *.94 )
+        self.betValue = bb * float(self.effOddsSum)
         self.totalWin.setText(str("{0:.2f}".format(self.betValue))+ ' ' + self.parent.base_unit())
         self.totalLegs.setText("Total Legs: " + str(bet_list_parlay.count()))
         self.totalodds.setText("Total Odds: " + str(self.odds))
