@@ -19,14 +19,14 @@ class SingleBetWidget(QWidget):
         self.parent = parent
         self.vbox_c = QVBoxLayout()
         self.vbox_c.setSpacing(20)
-        self.set_labels()
+        self.build_ui()
         self.qlistItem = None
 
     def btnCloseClicked(self):
         self.parent.betting_main_widget.remove_bet_by_item(self.qlistItem, "single")
         
     
-    def set_labels(self):
+    def build_ui(self):
         self.lblTitle = QLabel("")
         self.lblTitle.setWordWrap(True)
         self.lblTitle.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
@@ -118,6 +118,50 @@ class SingleBetWidget(QWidget):
         self.vbox_c.addWidget(self.lblPotentialReturnValue)
         self.lblLimitError.setText("")
         self.setLayout(self.vbox_c)
+        
+    def update_labels(self,bet_event):
+            self.lblTitle.setText(bet_event.lblHomeTeam.text() + " vs " + bet_event.lblAwayTeam.text())  
+            self.eventIdToBetOn = bet_event.eventId
+            self.betOutcome = bet_event.betOutcome
+            if bet_event.betOutcome == 1:
+                self.lblTeam.setText(bet_event.lblHomeTeam.text())
+                self.lblSelectedOddValue.setText(bet_event.btnMoneyLineHome.text())
+                self.onChainOddsValue = bet_event._moneyLineHomeOddsOC
+                self.effectiveOddsValue = bet_event._moneyLineHomeOddsE
+            if bet_event.betOutcome == 2:
+                self.lblTeam.setText(bet_event.lblAwayTeam.text())
+                self.lblSelectedOddValue.setText(bet_event.btnMoneyLineAway.text())
+                self.onChainOddsValue = bet_event._moneyLineAwayOddsOC
+                self.effectiveOddsValue = bet_event._moneyLineAwayOddsE
+            if bet_event.betOutcome == 3:
+                self.lblTeam.setText(bet_event.lblDraw.text())
+                self.lblSelectedOddValue.setText(bet_event.btnMoneyLineDraw.text())
+                self.onChainOddsValue = bet_event._moneyLineDrawOddsOC
+                self.effectiveOddsValue = bet_event._moneyLineDrawOddsE
+            if bet_event.betOutcome == 4:
+                self.lblTeam.setText(bet_event.lblHomeTeam.text())
+                self.lblHandicap.setHidden(False)
+                self.lblHandicap.setText("Handicap "+ bet_event.spreadPointsHome)
+                self.lblSelectedOddValue.setText(bet_event.spreadHomeOdds)
+                self.onChainOddsValue = bet_event._spreadHomeOddsOC
+                self.effectiveOddsValue = bet_event._spreadHomeOddsE
+            if bet_event.betOutcome == 5:
+                self.lblTeam.setText(bet_event.lblAwayTeam.text())
+                self.lblHandicap.setHidden(False)
+                self.lblHandicap.setText("Handicap "+ bet_event.spreadPointsAway)
+                self.lblSelectedOddValue.setText(bet_event.spreadAwayOdds)
+                self.onChainOddsValue = bet_event._spreadAwayOddsOC
+                self.effectiveOddsValue = bet_event._spreadAwayOddsE
+            if bet_event.betOutcome == 6:
+                self.lblTeam.setText("Over " + bet_event.totalPoints)
+                self.lblSelectedOddValue.setText(bet_event.totalsOverOdds)
+                self.onChainOddsValue = bet_event._totalsOverOddsOC
+                self.effectiveOddsValue = bet_event._totalsOverOddsE
+            if bet_event.betOutcome == 7:
+                self.lblTeam.setText("Under " + bet_event.totalPoints)
+                self.lblSelectedOddValue.setText(bet_event.totalsUnderOdds)
+                self.onChainOddsValue = bet_event._totalsUnderOddsOC
+                self.effectiveOddsValue = bet_event._totalsUnderOddsE
 
     def btnBetClicked(self):
         betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN

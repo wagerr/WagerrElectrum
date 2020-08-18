@@ -67,7 +67,7 @@ class SportListView(QListView):
                             ])
         self.setModel(model)
         self.selectionModel().selectionChanged.connect(self.item_changed)
-
+        
     def item_changed(self, newIdx,oldIdx = None):
         idx = newIdx.indexes()[0]
         sport = self.model().itemFromIndex(idx)
@@ -103,3 +103,4 @@ class SportListView(QListView):
                     self.parent.eventQListWidget.setItemWidget(eventQListWidgetItem, self.cw)
         self.eventQListWidget_scrollbar.setValue(self.eventQListWidget_scroll_position)
         self.parent.betting_main_widget.disable_All_Events() #disable events for existing parlay slip
+        self.parent.betting_main_widget.update_slips_from_events() #update all slips with new event_data.

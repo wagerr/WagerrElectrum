@@ -98,9 +98,8 @@ class EventWidget(QWidget):
         self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(_currentMoneyLineDrawOdds) if str(_currentMoneyLineDrawOdds) != "0.0" else "-")))
 
         self.btnMoneyLineHome.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
-        self.btnMoneyLineAway.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
-        self.btnMoneyLineDraw.setDisabled(str(_currentMoneyLineHomeOdds) == "0.0")
-        
+        self.btnMoneyLineAway.setDisabled(str(_currentMoneyLineAwayOdds) == "0.0")
+        self.btnMoneyLineDraw.setDisabled(str(_currentMoneyLineDrawOdds) == "0.0")
         
 
         _spreadPoints = obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR
