@@ -2105,7 +2105,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         try:
             out = util.parse_URI(URI, self.on_pr)
         except InvalidBitcoinURI as e:
-            #self.show_error(_("Error parsing URI") + f":\n{e}") 
+            self.show_error(_("Error parsing URI") + f":\n{e}") #uncomment this later
             return
         self.show_send_tab()
         r = out.get('r')

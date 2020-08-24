@@ -121,7 +121,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         self.setWindowTitle('Electrum-Wagerr  -  ' + _('Install Wizard'))
         self.app = app
         self.config = config
-        self.setMinimumSize(500, 350)
+        self.setMinimumSize(600, 400)
         self.accept_signal.connect(self.accept)
         self.title = QLabel()
         self.main_widget = QWidget()
@@ -141,6 +141,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         inner_vbox = QVBoxLayout()
         inner_vbox.addWidget(self.title)
         inner_vbox.addWidget(self.main_widget)
+        inner_vbox.addStretch(1)
         inner_vbox.addWidget(self.please_wait)
         inner_vbox.addStretch(1)
         scroll_widget = QWidget()
