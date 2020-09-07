@@ -927,6 +927,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def create_betting_history_tab(self):
         self.betting_history_model = BettingHistoryModel(self)
         self.betting_history_list = l = BettingHistoryList(self, self.betting_history_model)
+        self.betting_history_list.setStyleSheet(
+             "QTreeView {"
+                 "show-decoration-selected: 1;"
+             "}"
+             "QTreeView::item {"
+                 "padding: 5px;"
+                 "}")
         self.betting_history_list.setAlternatingRowColors(True)
         self.betting_history_model.set_view(self.betting_history_list)
         l.searchable_list = l
@@ -968,6 +975,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.receive_message_e.textChanged.connect(self.update_receive_qr)
 
         self.receive_amount_e = BTCAmountEdit(self.get_decimal_point)
+        self.receive_amount_e.setFixedWidth(18 * char_width_in_lineedit())
         grid.addWidget(QLabel(_('Requested amount')), 2, 0)
         grid.addWidget(self.receive_amount_e, 2, 1)
         self.receive_amount_e.textChanged.connect(self.update_receive_qr)
@@ -1226,6 +1234,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         from .paytoedit import PayToEdit
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
+        self.amount_e.setFixedWidth(18 * char_width_in_lineedit())
         self.payto_e = PayToEdit(self)
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Wagerr address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Wagerr address)')
@@ -1243,6 +1252,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         description_label = HelpLabel(_('Description'), msg)
         grid.addWidget(description_label, 2, 0)
         self.message_e = MyLineEdit()
+        self.message_e.setMinimumWidth(700)
         grid.addWidget(self.message_e, 2, 1, 1, -1)
 
         self.from_label = QLabel(_('From'))
@@ -1717,6 +1727,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         label = None
         legs = []
         opCode=''
+        bet_slip = a
         if hasattr(a, 'legs'):
             for l in a.legs:
                 legs.append(l)
@@ -1743,7 +1754,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
-        return outputs, fee_estimator, label, coins
+        return outputs, fee_estimator, label, coins, bet_slip
 
     def check_send_tab_outputs_and_show_errors(self, outputs) -> bool:
         """Returns whether there are errors with outputs.
@@ -1793,7 +1804,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         #print('do_bet called')
         if run_hook('abort_bet', self):
             return
-        outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
+        outputs, fee_estimator, tx_desc, coins, bet_slip = self.read_bet_tab(a)
         
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
@@ -1871,7 +1882,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     self.do_clear()
                 else:
                     print('do_bet sign_done else')
-                    self.broadcast_transaction(tx, tx_desc)
+                    self.broadcast_transaction(tx, tx_desc, bet_slip)
+                   
                     
                     
         print('do_bet calling sign_tx_with_password')
@@ -1984,7 +1996,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         msg = _('Signing transaction...')
         WaitingDialog(self, msg, task, on_success, on_failure)
 
-    def broadcast_transaction(self, tx, tx_desc):
+    def broadcast_transaction(self, tx, tx_desc , bet_slip = None):
         print('broadcast_transaction')
         def broadcast_thread():
             # non-GUI thread
@@ -2025,7 +2037,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                         self.wallet.set_label(tx.txid(), tx_desc)
                     parent.show_message(_('Payment sent.') + '\n' + msg)
                     self.invoice_list.update()
-                    self.do_clear()
+                    self.do_clear(bet_slip)
                 else:
                     msg = msg or ''
                     parent.show_error(msg)
@@ -2130,7 +2142,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.amount_e.textEdited.emit("")
 
 
-    def do_clear(self):
+    def do_clear(self,bet_slip = None):
         self.max_button.setChecked(False)
         self.not_enough_funds = False
         self.payment_request = None
@@ -2150,6 +2162,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.set_pay_from([])
         self.tx_external_keypairs = {}
         self.update_status()
+    
+        if bet_slip and hasattr(bet_slip, 'legs'):
+            self.betting_main_widget.clear_list()
+        elif bet_slip:
+            self.betting_main_widget.remove_bet_by_item(bet_slip.qlistItem,"single")
+           
         run_hook('do_clear', self)
 
     def set_frozen_state_of_addresses(self, addrs, freeze: bool):

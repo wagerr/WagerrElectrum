@@ -132,7 +132,6 @@ class ParlayBetBoxWidget(QWidget):
                 outcomeType = itemWidget.betOutcome
                 self.legs.append({"eventId":eventId,"outcomeType":outcomeType})
             self.parent.do_bet(a = self)
-            self.parent.betting_main_widget.clear_list()
         
 
     def on_parlaybet_list_update(self, event, *args):

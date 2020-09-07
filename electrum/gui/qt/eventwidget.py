@@ -157,8 +157,8 @@ class EventWidget(QWidget):
         self.totalsOverOdds = str("{0:.2f}".format(_currentTotalsOverOdds))
         self.totalsUnderOdds = str("{0:.2f}".format(_currentTotalsUnderOdds))
 
-        overTotalPointText = "(O" + self.totalPoints + ")"
-        underTotalPointText = "(U" + self.totalPoints + ")"
+        overTotalPointText = "(O " + self.totalPoints + ")"
+        underTotalPointText = "(U " + self.totalPoints + ")"
         
         self.btnTotalHome = QPushButton(overTotalPointText + "    " + self.totalsOverOdds if self.totalsOverOdds != "0.00" else "-" )
         self.btnTotalAway = QPushButton(underTotalPointText + "    " + self.totalsUnderOdds if self.totalsUnderOdds != "0.00" else "-")

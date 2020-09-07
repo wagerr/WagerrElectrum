@@ -691,8 +691,10 @@ class ButtonsWidget(QWidget):
 class ButtonsLineEdit(QLineEdit, ButtonsWidget):
     def __init__(self, text=None):
         QLineEdit.__init__(self, text)
+        self.heightMin = 32
         self.buttons = []
-
+        self.setMinimumHeight(self.heightMin)
+        
     def resizeEvent(self, e):
         o = QLineEdit.resizeEvent(self, e)
         self.resizeButtons()

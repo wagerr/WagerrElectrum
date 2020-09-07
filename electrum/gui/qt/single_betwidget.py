@@ -40,7 +40,8 @@ class SingleBetWidget(QWidget):
 
         #Header close button
         self.btnClose = QPushButton("X")
-        self.btnClose.setMaximumSize(30,30)
+        self.btnClose.setMaximumSize(50,50)
+        self.btnClose.setStyleSheet("font-weight: bold;")
         self.btnClose.clicked.connect(self.btnCloseClicked)
 
         #Error on Bet Amount Limit
@@ -167,8 +168,7 @@ class SingleBetWidget(QWidget):
         betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN
         print("Betting Amount : ", betAmtInWgr)
         if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
-            test = self.parent.do_bet(a = self)
-            self.parent.betting_main_widget.remove_bet_by_item(self.qlistItem,"single")
+            self.parent.do_bet(a = self)
 
             
         

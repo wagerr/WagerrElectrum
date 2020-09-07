@@ -27,7 +27,8 @@ class ParlayBetWidget(QWidget):
 
         #Header close button
         self.btnClose = QPushButton("X")
-        self.btnClose.setMaximumSize(30,30)
+        self.btnClose.setMaximumSize(50,50)
+        self.btnClose.setStyleSheet("font-weight: bold;")
         self.btnClose.clicked.connect(self.btnCloseClicked)
 
         self.lblPick = QLabel("YOUR PICK:")
