@@ -16,7 +16,6 @@ class BettingMainWidget(QWidget):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.current_bet_type = 'single'
-        
         self.mainLayout = QVBoxLayout()
         self.event = Event.getInstance()
         self.parlay_bet_eventId_list = []
@@ -128,13 +127,12 @@ class BettingMainWidget(QWidget):
         if self.current_bet_type == "single":
             self.single_betWidget = SingleBetWidget(self.parent)
             self.single_betWidget.update_labels(bet_event)
-            
             single_bet_list_item = QListWidgetItem(self.bet_list_widget_single)
             single_bet_list_item.setSizeHint(self.single_betWidget.sizeHint())
             self.single_betWidget.qlistItem = single_bet_list_item #for remove item when close button click or bet done
             self.bet_list_widget_single.addItem(single_bet_list_item)
-            self.bet_list_widget_single.setMinimumWidth(self.bet_list_widget_single.sizeHintForColumn(0)+ 40)
             self.bet_list_widget_single.setItemWidget(single_bet_list_item, self.single_betWidget)
+            self.bet_list_widget_single.setMinimumWidth(self.bet_list_widget_single.sizeHintForColumn(0)+20)
             
             
         elif self.current_bet_type == "parlay":

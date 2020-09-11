@@ -1476,6 +1476,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.grid_betting.setColumnStretch(0,1.3)
         self.grid_betting.setColumnStretch(1,6.7)
         self.grid_betting.setColumnStretch(2,2)
+        self.grid_betting.setColumnMinimumWidth(0,100)
         
         self.eventQListWidget = QListWidget()
         self.eventQListWidget.setMinimumWidth(800)

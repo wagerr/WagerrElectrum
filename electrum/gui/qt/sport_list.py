@@ -66,7 +66,9 @@ class SportListView(QListView):
                             QStandardItem(read_QIcon(''.join([s,".png"]))," {0} ({1})".format(s,str(counts[s] or "0")))
                             ])
         self.setModel(model)
+        self.setMinimumWidth(self.sizeHintForColumn(0)+10)
         self.selectionModel().selectionChanged.connect(self.item_changed)
+
         
     def item_changed(self, newIdx,oldIdx = None):
         idx = newIdx.indexes()[0]
