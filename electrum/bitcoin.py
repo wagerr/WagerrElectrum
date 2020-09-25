@@ -49,6 +49,7 @@ TYPE_ADDRESS = 0
 TYPE_PUBKEY  = 1
 TYPE_SCRIPT  = 2
 TYPE_BET     = 3
+TYPE_QUICKGAME = 4
 
 
 class opcodes(IntEnum):

@@ -87,7 +87,7 @@ from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
-from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialog,
+from .util import (read_QIcon, read_QImage, ColorScheme, text_dialog, icon_path, WaitingDialog,
                    WindowModalDialog, ChoicesLayout, HelpLabel, FromList, Buttons,
                    OkButton, InfoButton, WWLabel, TaskThread, CancelButton,
                    CloseButton, HelpButton, MessageBoxMixin, EnterButton, expiration_values,
@@ -96,12 +96,16 @@ from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialo
 from .installwizard import WIF_HELP_TEXT
 from .history_list import HistoryList, HistoryModel
 from .betting_history_list import (BettingHistoryList, BettingHistoryModel)
+from .quick_games.dice.dice_history_list import (DiceHistoryList, DiceHistoryModel)
 from .update_checker import UpdateCheck, UpdateCheckThread
 from electrum.bet import PeerlessBet
+from electrum.chaingame import ChainGame
 from PyQt5 import QtWidgets
 from .toogle_switch import ToogleSwitch
 
 from .sport_list import SportListView
+from .quick_games.quickgame_list import QuickGameListView
+from .quick_games.dice.dicegame_main_widget import DiceGameWidget
 from .betting_main_widget import BettingMainWidget
 
 class StatusBarButton(QPushButton):
@@ -192,10 +196,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.console_tab = self.create_console_tab()
         self.contacts_tab = self.create_contacts_tab()
         self.betting_tab = self.create_betting_tab()
+        self.chaingames_tab = self.create_chaingames_tab()
+
         tabs.addTab(self.create_history_tab(), read_QIcon("tab_history.png"), _('History'))
         tabs.addTab(self.send_tab, read_QIcon("tab_send.png"), _('Send'))
         tabs.addTab(self.receive_tab, read_QIcon("tab_receive.png"), _('Receive'))
         tabs.addTab(self.betting_tab, read_QIcon("tab_betting.png"), _('Betting'))
+        tabs.addTab(self.chaingames_tab, read_QIcon("tab_betting.png"), _('ChainGames'))
         tabs.addTab(self.create_betting_history_tab(), read_QIcon("tab_bettinghistory.png"), _('Betting History'))
         def add_optional_tab(tabs, tab, icon, description, name):
             tab.tab_icon = icon
@@ -402,6 +409,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             if wallet == self.wallet:
                 self.history_model.update_tx_mined_status(tx_hash, tx_mined_status)
                 self.betting_history_model.update_tx_mined_status(tx_hash, tx_mined_status)
+                self.dice_history_model.update_tx_mined_status(tx_hash, tx_mined_status)
         elif event == 'fee':
             if self.config.is_dynfee():
                 self.fee_slider.update()
@@ -895,7 +903,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             wallet = self.wallet
         if wallet != self.wallet:
             return
-        
+
+        self.dice_history_model.refresh('update_tabs')
         self.betting_history_model.refresh('update_tabs')  #put this to refresh first so it can fill bet label for history model
         self.history_model.refresh('update_tabs')
         self.request_list.update()
@@ -936,6 +945,24 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                  "}")
         self.betting_history_list.setAlternatingRowColors(True)
         self.betting_history_model.set_view(self.betting_history_list)
+        l.searchable_list = l
+        toolbar = l.create_toolbar(self.config)
+        toolbar_shown = self.config.get('show_toolbar_history', False)
+        l.show_toolbar(toolbar_shown)
+        return self.create_list_tab(l, toolbar)
+
+    def create_dice_history_grid(self):
+        self.dice_history_model = DiceHistoryModel(self)
+        self.dice_history_list = l = DiceHistoryList(self, self.dice_history_model)
+        self.dice_history_list.setStyleSheet(
+             "QTreeView {"
+                 "show-decoration-selected: 1;"
+             "}"
+             "QTreeView::item {"
+                 "padding: 5px;"
+                 "}")
+        self.dice_history_list.setAlternatingRowColors(True)
+        self.dice_history_model.set_view(self.dice_history_list)
         l.searchable_list = l
         toolbar = l.create_toolbar(self.config)
         toolbar_shown = self.config.get('show_toolbar_history', False)
@@ -1464,6 +1491,31 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         run_hook('create_send_tab', grid)
         return w
     
+
+    def create_chaingames_tab(self):
+        self.grid_chaingames = grid = QGridLayout()
+        self.grid_chaingames.setColumnStretch(0,1.3)
+        self.grid_chaingames.setColumnMinimumWidth(0,100)
+        self.grid_chaingames.setColumnStretch(1,8.7)
+        self.quickgame_list = QuickGameListView(self)
+
+        self.dice_game_widget = DiceGameWidget(self)
+        
+
+        self.grid_chaingames.addWidget(self.quickgame_list, 0,0)
+        self.grid_chaingames.addWidget(self.dice_game_widget, 0,1)
+
+
+        self.w = QWidget()
+        self.w.setLayout(self.grid_chaingames)
+        run_hook('create_chaingames_tab',grid)
+        return self.w
+
+
+
+
+
+
     pyqtSlot(str)
     def search_team(self):
         self.search_filter = self.team_search_box.text()
@@ -1471,7 +1523,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
      
     def create_betting_tab(self):
         
-        self.grid_betting=QGridLayout()
+        self.grid_betting = grid =QGridLayout()
         
         self.grid_betting.setColumnStretch(0,1.3)
         self.grid_betting.setColumnStretch(1,6.7)
@@ -1482,7 +1534,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet("QListWidget { border:0px; background-color:#DEE2E6; } QListWidget::item { background-color:#fff}")
         self.eventQListWidget.setSpacing(10)
-        self.betting_grid = grid = QGridLayout()
+        self.eventQListWidget.verticalScrollBar().setSingleStep(20)
         self.sports_list = SportListView(self)
         self.vbox_grid = QVBoxLayout()
         self.list_header_backg = QWidget()
@@ -1756,6 +1808,19 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins, bet_slip
+        
+    def read_dice_tab(self, d):
+        label = None
+        isDice, opCode = ChainGame.DiceToOpCode(d)
+        amount = int(d.amount)
+        if not(isDice):
+            raise Exception('Error converting Dice to opcode')
+        
+        print('OpCode:',opCode)
+        outputs = [TxOutput(bitcoin.TYPE_QUICKGAME, opCode, amount)]
+        fee_estimator = self.get_send_fee_estimator()
+        coins = self.get_coins()
+        return outputs, fee_estimator, label, coins
 
     def check_send_tab_outputs_and_show_errors(self, outputs) -> bool:
         """Returns whether there are errors with outputs.
@@ -1801,6 +1866,96 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def do_preview(self):
         self.do_send(preview = True)
 
+
+    def do_roll(self,d,preview = False):
+        #print('do_bet called')
+        if run_hook('abort_roll', self):
+            return
+        outputs, fee_estimator, tx_desc, coins = self.read_dice_tab(d)
+        
+        if self.check_send_tab_outputs_and_show_errors(outputs):
+            return
+        try:
+            is_sweep = bool(self.tx_external_keypairs)
+            #print('do_bet calling make_unsigned_transaction')
+            tx = self.wallet.make_unsigned_transaction(
+                coins, outputs, self.config, fixed_fee=fee_estimator,
+                is_sweep=is_sweep)
+            #print('do_bet calling make_unsigned_transaction done')
+        except (NotEnoughFunds, NoDynamicFeeEstimates) as e:
+            self.show_message(str(e))
+            return
+        except InternalAddressCorruption as e:
+            self.show_error(str(e))
+            raise
+        except BaseException as e:
+            self.logger.exception('')
+            self.show_message(str(e))
+            return
+
+        amount = tx.output_value() if self.max_button.isChecked() else sum(map(lambda x:x[2], outputs))
+        fee = tx.get_fee()
+
+        use_rbf = self.config.get('use_rbf', True)
+        if use_rbf:
+            tx.set_rbf(True)
+
+        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+            self.show_error('\n'.join([
+                _("This transaction requires a higher fee, or it will not be propagated by your current server"),
+                _("Try to raise your transaction fee, or use a server with a lower relay fee.")
+            ]))
+            return
+
+        if preview:
+            self.show_transaction(tx, tx_desc)
+            return
+
+        if not self.network:
+            self.show_error(_("You can't broadcast a transaction without a live network connection."))
+            return
+
+        # confirmation dialog
+        msg = [
+            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+            _("Mining fee") + ": " + self.format_amount_and_units(fee),
+        ]
+
+        x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
+        if x_fee:
+            x_fee_address, x_fee_amount = x_fee
+            msg.append( _("Additional fees") + ": " + self.format_amount_and_units(x_fee_amount) )
+
+        feerate_warning = simple_config.FEERATE_WARNING_HIGH_FEE
+        if fee > feerate_warning * tx.estimated_size() / 1000:
+            msg.append(_('Warning') + ': ' + _("The fee for this transaction seems unusually high."))
+
+        if self.wallet.has_keystore_encryption():
+            msg.append("")
+            msg.append(_("Enter your password to proceed"))
+            password = self.password_dialog('\n'.join(msg))
+            if not password:
+                return
+        else:
+            msg.append(_('Proceed?'))
+            password = None
+            if not self.question('\n'.join(msg)):
+                return
+
+        def sign_done(success):
+            if success:
+                if not tx.is_complete():
+                    self.show_transaction(tx)
+                    self.do_clear()
+                else:
+                    print('do_roll sign_done else')
+                    self.broadcast_transaction(tx, tx_desc)
+                   
+                    
+                    
+        print('do_roll calling sign_tx_with_password')
+        self.sign_tx_with_password(tx, sign_done, password)
+      
     def do_bet(self,a,preview = False):
         #print('do_bet called')
         if run_hook('abort_bet', self):
@@ -2118,7 +2273,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         try:
             out = util.parse_URI(URI, self.on_pr)
         except InvalidBitcoinURI as e:
-            self.show_error(_("Error parsing URI") + f":\n{e}") #uncomment this later
+            #self.show_error(_("Error parsing URI") + f":\n{e}") #uncomment this later
             return
         self.show_send_tab()
         r = out.get('r')
@@ -2260,6 +2415,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.contact_list.update()
         self.history_list.update()
         self.betting_history_list.update()
+        self.dice_history_list.update()
         self.update_completions()
         return True
 
@@ -2271,6 +2427,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.contacts.pop(label)
         self.history_list.update()
         self.betting_history_list.update()
+        self.dice_history_list.update()
         self.contact_list.update()
         self.update_completions()
 
@@ -2315,6 +2472,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.invoices.remove(key)
                 self.history_list.update()
                 self.betting_history_list.update()
+                self.dice_history_list.update()
                 self.invoice_list.update()
                 d.close()
         deleteButton = EnterButton(_('Delete'), do_delete)
@@ -3056,6 +3214,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.address_list.update()
         self.history_list.update()
         self.betting_history_list.update()
+        self.dice_history_list.update()
 
     def import_addresses(self):
         if not self.wallet.can_import_address():
@@ -3079,6 +3238,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.fiat_receive_e.setVisible(b)
         self.history_list.update()
         self.betting_history_list.update()
+        self.dice_history_list.update()
         self.address_list.refresh_headers()
         self.address_list.update()
         self.update_status()
@@ -3132,6 +3292,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.config.set_key('num_zeros', value, True)
                 self.history_list.update()
                 self.betting_history_list.update()
+                self.dice_history_list.update()
                 self.address_list.update()
         nz.valueChanged.connect(on_nz)
         gui_widgets.append((nz_label, nz))
@@ -3254,6 +3415,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             nz.setMaximum(self.decimal_point)
             self.history_list.update()
             self.betting_history_list.update()
+            self.dice_history_list.update()
             self.request_list.update()
             self.address_list.update()
             for edit, amount in zip(edits, amounts):

@@ -874,11 +874,16 @@ def get_parent_main_window(widget):
 def icon_path(icon_basename):
     return resource_path('gui', 'icons', icon_basename)
 
+def image_path(image_basename):
+    return resource_path('gui', 'images', image_basename)
 
 @lru_cache(maxsize=1000)
 def read_QIcon(icon_basename):
     return QIcon(icon_path(icon_basename))
 
+@lru_cache(maxsize=1000)
+def read_QImage(image_basename):
+    return QPixmap(image_path(image_basename))
 
 def get_default_language():
     name = QLocale.system().name()

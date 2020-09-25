@@ -35,7 +35,7 @@ from typing import (Sequence, Union, NamedTuple, Tuple, Optional, Iterable,
 
 from . import ecc, bitcoin, constants, segwit_addr
 from .util import profiler, to_bytes, bh2u, bfh
-from .bitcoin import (TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, TYPE_BET, hash_160,
+from .bitcoin import (TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, TYPE_BET, TYPE_QUICKGAME, hash_160,
                       hash160_to_p2sh, hash160_to_p2pkh, hash_to_segwit_addr,
                       hash_encode, var_int, TOTAL_COIN_SUPPLY_LIMIT_IN_BTC, COIN,
                       push_script, int_to_hex, push_script, b58_address_to_hash160,
@@ -438,8 +438,11 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Tuple[int, str
         str1=str[4:]
         # print("In Bet:",bh2u(_bytes))
         # print("spliced bit",str1)
-        return TYPE_BET, bh2u(_bytes)
-
+        type_code = str1[4:4+2]
+        if(type_code == "03"): #betting_type(parlay,single)
+            return TYPE_BET, bh2u(_bytes)
+        elif(type_code == "0d"): #quickgame_type(dice, ...)
+             return TYPE_QUICKGAME, bh2u(_bytes)
    
     return TYPE_SCRIPT, bh2u(_bytes)
     #return TYPE_BET, bh2u(_bytes)
@@ -757,7 +760,7 @@ class Transaction:
             return bitcoin.address_to_script(addr)
         elif output_type == TYPE_PUBKEY:
             return bitcoin.public_key_to_p2pk_script(addr)
-        elif output_type == TYPE_BET:
+        elif output_type == TYPE_BET or output_type == TYPE_QUICKGAME:
             return bitcoin.address_to_bet_script(addr)
         else:
             raise TypeError('Unknown output type')
@@ -1229,6 +1232,13 @@ class Transaction:
             if o.type == TYPE_BET:
                 retVal = True
         return retVal
+    
+    def is_quickgame_tx(self):
+        retVal = False
+        for o in self.outputs():
+            if o.type == TYPE_QUICKGAME:
+                retVal = True
+        return retVal
 
     def isCoinStake(self):
         inputs_length = len(self.inputs())
@@ -1240,7 +1250,7 @@ class Transaction:
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
         for o in self.outputs():
-            if o.type == TYPE_BET:
+            if o.type == TYPE_BET or o.type == TYPE_QUICKGAME:
                 continue
             if o.type == TYPE_ADDRESS:
                 addr = o.address
@@ -1254,7 +1264,7 @@ class Transaction:
     def get_outputs_for_betting(self) -> Sequence[TxOutputForUI]:
         outputs = []
         for o in self.outputs():
-            if o.type == TYPE_BET:
+            if o.type == TYPE_BET or o.type == TYPE_QUICKGAME:
                 addr = o.address
             else:
                 continue
