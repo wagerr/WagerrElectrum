@@ -16,7 +16,7 @@ EFFECTIVE_ODDS = { #effective odds OVER-UNDER
 }
 
 ONCHAIN_ODDS = {
-
+1: "2-2"
 }
 
 class Odd_Even(QWidget):
@@ -54,28 +54,33 @@ class Odd_Even(QWidget):
 
         self.btn_roll_odd.setDisabled(True)
         self.btn_roll_even.setDisabled(True)
-        
-        self.lbl_potential_return = QLabel("")
-        self.lbl_potential_return.setStyleSheet("color:#CA2626")
-        self.lbl_potential_return.setAlignment(Qt.AlignCenter)
-        self.lbl_potential_return.setWordWrap(True)
-
+       
         self.roll_control_widget = QWidget()
 
         self.roll_control_vbox = QVBoxLayout(self.roll_control_widget)
         
-        self.roll_control_hbox = QHBoxLayout()
-        self.roll_control_hbox.addWidget(self.btn_roll_odd)
-        self.roll_control_hbox.addWidget(self.edit_roll_amount)
-        self.roll_control_hbox.addWidget(self.btn_roll_even)
-        self.roll_control_hbox.setSpacing(20)
+        self.roll_control_grid = QGridLayout()
+        self.roll_control_grid.addWidget(self.btn_roll_odd,0,1)
+        self.roll_control_grid.addWidget(self.edit_roll_amount,0,2)
+        self.roll_control_grid.addWidget(self.btn_roll_even,0,3)
+        self.roll_control_grid.setSpacing(20)
 
-        self.roll_control_vbox.addLayout(self.roll_control_hbox)
-        self.roll_control_vbox.addWidget(self.lbl_potential_return)
+        self.lbl_pr_odd = QLabel("")
+        self.lbl_pr_odd.setStyleSheet("color:#CA2626")
+        self.lbl_pr_odd.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_even = QLabel("")
+        self.lbl_pr_even.setStyleSheet("color:#CA2626")
+        self.lbl_pr_even.setAlignment(Qt.AlignCenter)
 
+        self.roll_control_grid.addWidget(self.lbl_pr_odd,1,1)
+        self.roll_control_grid.addWidget(QWidget(),1,2)
+        self.roll_control_grid.addWidget(self.lbl_pr_even,1,3)
+
+        self.roll_control_vbox.addLayout(self.roll_control_grid)
+        
         self.roll_control_widget.setFixedWidth(500)
         self.main_grid.addWidget(self.roll_control_widget)
-
+        
         self.setLayout(self.main_grid)
 
     
@@ -105,6 +110,9 @@ class Odd_Even(QWidget):
         odd = Current_Odd[1].split("-")[1]
 
       
-        pr_even = str("(Even) {0:.2f}".format(bb * float(even))) 
-        pr_odd = str("(Odd) {0:.2f}".format(bb * float(odd)))
-        self.lbl_potential_return.setText("Poterntial Return: " + pr_odd + ' ' + self.parent.base_unit() + ' / ' + pr_even + ' ' + self.parent.base_unit())
+        pr_even = str("{0:.2f}".format(bb * float(even))) 
+        pr_odd = str("{0:.2f}".format(bb * float(odd)))
+
+        self.lbl_pr_even.setText(pr_even)
+        self.lbl_pr_odd.setText(pr_odd)
+        

@@ -107,6 +107,7 @@ from .sport_list import SportListView
 from .quick_games.quickgame_list import QuickGameListView
 from .quick_games.dice.dicegame_main_widget import DiceGameWidget
 from .betting_main_widget import BettingMainWidget
+import re
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -1498,22 +1499,28 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.grid_chaingames.setColumnMinimumWidth(0,100)
         self.grid_chaingames.setColumnStretch(1,8.7)
         self.quickgame_list = QuickGameListView(self)
-
-        self.dice_game_widget = DiceGameWidget(self)
-        
-
+        self.quickgame_list.selectionModel().selectionChanged.connect(self.chaingame_changed)
+        self.chaingame_widgets = {
+            "Dice": DiceGameWidget(self),
+        }
         self.grid_chaingames.addWidget(self.quickgame_list, 0,0)
-        self.grid_chaingames.addWidget(self.dice_game_widget, 0,1)
-
-
+        self.grid_chaingames.addWidget(self.chaingame_widgets["Dice"], 0,1)
+        
         self.w = QWidget()
         self.w.setLayout(self.grid_chaingames)
         run_hook('create_chaingames_tab',grid)
         return self.w
 
 
-
-
+    #for upcoming games.
+    def chaingame_changed(self,newIdx,oldIdx = None):
+        
+        idx = newIdx.indexes()[0]
+        sport = self.quickgame_list.model().itemFromIndex(idx)
+        self.selectedGame = re.sub(r'\([^)]*\)', '', sport.text()).strip()
+        print("Selected Game : ", self.selectedGame)
+        self.quickgame_list.selectionModel().setCurrentIndex(idx, QItemSelectionModel.SelectCurrent)
+        #self.grid_chaingames.addWidget(self.chaingame_widgets["Dice"],0,1)
 
 
     pyqtSlot(str)

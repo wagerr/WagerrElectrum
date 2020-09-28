@@ -36,10 +36,10 @@ class DiceGameWidget(QWidget):
     def build_header_box(self):
         #header Hbox
         self.header_hbox = QHBoxLayout()
-        self.header_img = read_QImage('dice_logo.png')
+        self.header_img = read_QImage('dice_logo.jpg')
         self.lbl_img = QLabel()
         self.lbl_img.setPixmap(self.header_img)
-        self.lbl_img.resize(50, 50)
+        self.lbl_img.resize(473, 122)
         self.lbl_img.setAlignment(Qt.AlignCenter)
         self.header_hbox.addWidget(self.lbl_img)
         self.main_vbox.addLayout(self.header_hbox)
@@ -76,7 +76,7 @@ class DiceGameWidget(QWidget):
         self.line.setFrameShadow(QFrame.Sunken);
 
         self.lbl_roll_title = QLabel("")
-        self.lbl_roll_title.setStyleSheet("font-size:20pt;font-weight:bold")
+        self.lbl_roll_title.setStyleSheet("font-size:20pt;font-weight:bold;color:#CA2626")
         self.lbl_roll_title.setAlignment(Qt.AlignCenter)
 
         self.main_vbox.addLayout(self.roll_choice_box)

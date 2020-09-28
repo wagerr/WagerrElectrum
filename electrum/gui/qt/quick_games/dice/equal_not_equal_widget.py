@@ -8,21 +8,31 @@ MIN_ROLL_AMT  = 25 #WGR
 MAX_ROLL_AMT  = 10000 #WGR
 
 EFFECTIVE_ODDS = { #effective odds Equal- NotEqual
-2: "35.6214-1.0283",
-3: "17.8157-1.0582",
-4: "11.8947-1.0899",
-5: "8.9208-1.1237",
-6: "7.1374-1.1596",
-7: "5.9488-1.198",
-8: "7.1374-1.1596",
-9: "8.9208-1.1237",
-10: "11.894-1.0899",
-11: "17.8157-1.0582",
-12: "35.6214-1.0283"
+2: "35.621488-1.028215",
+3: "17.815744-1.058212",
+4: "11.894752-1.089892",
+5: "8.920891-1.123651",
+6: "7.137406-1.159687",
+7: "5.948812-1.198",
+8: "7.137406-1.159687",
+9: "8.920891-1.123651",
+10: "11.894752-1.089892",
+11: "17.815744-1.058212",
+12: "35.621488-1.028215"
 }
 
 ONCHAIN_ODDS = {
-
+2: "35.9712-1.0285",
+3: "17.9856-1.0588",
+4: "12.0048-1.0908",
+5: "9.0009-1.1249",
+6: "7.1994-1.1613",
+7: "5.9988-1.2000",
+8: "7.1994-1.1613",
+9: "9.0009-1.1249",
+10: "12.0048-1.0908",
+11: "17.9856-1.0588",
+12: "35.9712-1.0285"
 }
 
 
@@ -74,22 +84,29 @@ class Equal_NotEqual(QWidget):
         self.btn_equal_to.clicked.connect(lambda:self.do_roll("EQUAL"))
         self.btn_not_equal_to.clicked.connect(lambda:self.do_roll("NOTEQUAL"))
 
-        self.lbl_potential_return = QLabel("")
-        self.lbl_potential_return.setStyleSheet("color:#CA2626")
-        self.lbl_potential_return.setAlignment(Qt.AlignCenter)
-        self.lbl_potential_return.setWordWrap(True)
-        
         self.roll_control_widget = QWidget()
         self.roll_control_vbox = QVBoxLayout(self.roll_control_widget)
         
-        self.roll_control_hbox = QHBoxLayout()
-        self.roll_control_hbox.addWidget(self.btn_equal_to)
-        self.roll_control_hbox.addWidget(self.edit_roll_amount)
-        self.roll_control_hbox.addWidget(self.btn_not_equal_to)
-        self.roll_control_hbox.setSpacing(20)
+        self.roll_control_grid = QGridLayout()
+        self.roll_control_grid.addWidget(self.btn_equal_to,0,1)
+        self.roll_control_grid.addWidget(self.edit_roll_amount,0,2)
+        self.roll_control_grid.addWidget(self.btn_not_equal_to,0,3)
+        self.roll_control_grid.setSpacing(20)
 
-        self.roll_control_vbox.addLayout(self.roll_control_hbox)
-        self.roll_control_vbox.addWidget(self.lbl_potential_return)
+        self.lbl_pr_equal = QLabel("")
+        self.lbl_pr_equal.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_equal.setStyleSheet("color:#CA2626")
+        self.lbl_pr_notequal = QLabel("")
+        self.lbl_pr_notequal.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_notequal.setStyleSheet("color:#CA2626")
+       
+        self.roll_control_grid.addWidget(self.lbl_pr_equal,1,1)
+        self.roll_control_grid.addWidget(QWidget(),1,2)
+        self.roll_control_grid.addWidget(self.lbl_pr_notequal,1,3)
+        
+
+        self.roll_control_vbox.addLayout(self.roll_control_grid)
+        
         
         self.main_grid.addWidget(self.roll_control_widget,2,5,1,5)
         self.main_grid.setSpacing(10)
@@ -105,7 +122,8 @@ class Equal_NotEqual(QWidget):
         
     def roll_selected(self, id):
         self.roll_choice = abs(id)
-        print(str(id))
+        self.amountChanged() ##recalculate PR.
+        
 
     def do_roll(self, side):
         self.side = side
@@ -134,6 +152,8 @@ class Equal_NotEqual(QWidget):
         odds_not_equal = Current_Odd[self.roll_choice].split("-")[1]
 
       
-        pr_equal = str("(Equal) {0:.2f}".format(bb * float(odds_equal))) 
-        pr_not_equal = str("(Not Equal) {0:.2f}".format(bb * float(odds_not_equal)))
-        self.lbl_potential_return.setText("Poterntial Return: " + pr_equal + ' ' + self.parent.base_unit() + ' / ' + pr_not_equal + ' ' + self.parent.base_unit())
+        pr_equal = str("PR: {0:.2f}".format(bb * float(odds_equal))) 
+        pr_not_equal = str("PR: {0:.2f}".format(bb * float(odds_not_equal)))
+        self.lbl_pr_equal.setText(pr_equal)
+        self.lbl_pr_notequal.setText(pr_not_equal)
+        
