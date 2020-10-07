@@ -108,6 +108,7 @@ from .quick_games.quickgame_list import QuickGameListView
 from .quick_games.dice.dicegame_main_widget import DiceGameWidget
 from .betting_main_widget import BettingMainWidget
 import re
+from electrum.event import Event
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -1787,7 +1788,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         label = None
         legs = []
         opCode=''
-        bet_slip = a
         if hasattr(a, 'legs'):
             for l in a.legs:
                 legs.append(l)
@@ -1814,7 +1814,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
-        return outputs, fee_estimator, label, coins, bet_slip
+        return outputs, fee_estimator, label, coins
         
     def read_dice_tab(self, d):
         label = None
@@ -1874,21 +1874,22 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.do_send(preview = True)
 
 
-    def do_roll(self,d,preview = False):
-        #print('do_bet called')
+    def do_roll(self,d, bettype , preview = False):
+        #print('do_roll called')
         if run_hook('abort_roll', self):
             return
+        args = {"type": bettype}
         outputs, fee_estimator, tx_desc, coins = self.read_dice_tab(d)
         
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
         try:
             is_sweep = bool(self.tx_external_keypairs)
-            #print('do_bet calling make_unsigned_transaction')
+            #print('do_roll calling make_unsigned_transaction')
             tx = self.wallet.make_unsigned_transaction(
                 coins, outputs, self.config, fixed_fee=fee_estimator,
                 is_sweep=is_sweep)
-            #print('do_bet calling make_unsigned_transaction done')
+            #print('do_roll calling make_unsigned_transaction done')
         except (NotEnoughFunds, NoDynamicFeeEstimates) as e:
             self.show_message(str(e))
             return
@@ -1956,18 +1957,19 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     self.do_clear()
                 else:
                     print('do_roll sign_done else')
-                    self.broadcast_transaction(tx, tx_desc)
+                    self.broadcast_transaction(tx, tx_desc, args )
                    
                     
                     
         print('do_roll calling sign_tx_with_password')
         self.sign_tx_with_password(tx, sign_done, password)
       
-    def do_bet(self,a,preview = False):
+    def do_bet(self,a , bettype ,preview = False):
         #print('do_bet called')
+        args = {"type": bettype , "listitem": a }
         if run_hook('abort_bet', self):
             return
-        outputs, fee_estimator, tx_desc, coins, bet_slip = self.read_bet_tab(a)
+        outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
         
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
@@ -2045,7 +2047,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     self.do_clear()
                 else:
                     print('do_bet sign_done else')
-                    self.broadcast_transaction(tx, tx_desc, bet_slip)
+                    self.broadcast_transaction(tx, tx_desc,args)
                    
                     
                     
@@ -2159,7 +2161,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         msg = _('Signing transaction...')
         WaitingDialog(self, msg, task, on_success, on_failure)
 
-    def broadcast_transaction(self, tx, tx_desc , bet_slip = None):
+    def broadcast_transaction(self, tx, tx_desc,args = None):
         print('broadcast_transaction')
         def broadcast_thread():
             # non-GUI thread
@@ -2200,7 +2202,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                         self.wallet.set_label(tx.txid(), tx_desc)
                     parent.show_message(_('Payment sent.') + '\n' + msg)
                     self.invoice_list.update()
-                    self.do_clear(bet_slip)
+                    Event.getInstance().trigger_callback("tx_brodcasted",args)
+                    self.do_clear()
                 else:
                     msg = msg or ''
                     parent.show_error(msg)
@@ -2305,7 +2308,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.amount_e.textEdited.emit("")
 
 
-    def do_clear(self,bet_slip = None):
+    def do_clear(self):
         self.max_button.setChecked(False)
         self.not_enough_funds = False
         self.payment_request = None
@@ -2325,12 +2328,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.set_pay_from([])
         self.tx_external_keypairs = {}
         self.update_status()
-    
-        if bet_slip and hasattr(bet_slip, 'legs'):
-            self.betting_main_widget.clear_list()
-        elif bet_slip:
-            self.betting_main_widget.remove_bet_by_item(bet_slip.qlistItem,"single")
-           
         run_hook('do_clear', self)
 
     def set_frozen_state_of_addresses(self, addrs, freeze: bool):

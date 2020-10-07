@@ -168,8 +168,7 @@ class SingleBetWidget(QWidget):
         betAmtInWgr = (self.editBettingAmount.get_amount() or 0) / COIN
         print("Betting Amount : ", betAmtInWgr)
         if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
-            self.parent.do_bet(a = self)
-
+            self.parent.do_bet(self, "single")
             
         
     def betAmountChanged(self):

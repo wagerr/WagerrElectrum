@@ -20,6 +20,7 @@ class BettingMainWidget(QWidget):
         self.event = Event.getInstance()
         self.parlay_bet_eventId_list = []
 
+        self.event.register_callback(self.bet_done,["tx_brodcasted"])
 
         self.nav_widget = QWidget()
         self.nav_widget.setStyleSheet(
@@ -259,7 +260,19 @@ class BettingMainWidget(QWidget):
                 if itemwidget.eventId == event_Id:
                     itemwidget.setDisabled(False) #enable single event
         
-   
+    def bet_done(self,event,args):
+
+        if args == None:
+            return 
+            
+        if args["type"] == "parlay":
+           self.bet_list_widget_parlay.clear()
+           self.event.trigger_callback("parlay_list_updated")
+           self.enable_All_Events() #enable all events when parlay list clear
+           self.parlay_bet_eventId_list.clear()
+        if args["type"] == "single":
+            self.remove_bet_by_item(args["listitem"],"single")
+           
 
 
 

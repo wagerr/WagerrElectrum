@@ -3,38 +3,12 @@ from PyQt5.QtCore import QSize, Qt
 from electrum.gui.qt.amountedit import AmountEdit, BTCAmountEdit
 from PyQt5.QtGui import QDoubleValidator
 from electrum.bitcoin import COIN
+from electrum.util import format_amount
+from ..game_util import calculate_potential_return
+from electrum.event import Event
 
 MIN_ROLL_AMT  = 25 #WGR
 MAX_ROLL_AMT  = 10000 #WGR
-
-EFFECTIVE_ODDS = { #effective odds Equal- NotEqual
-2: "35.621488-1.028215",
-3: "17.815744-1.058212",
-4: "11.894752-1.089892",
-5: "8.920891-1.123651",
-6: "7.137406-1.159687",
-7: "5.948812-1.198",
-8: "7.137406-1.159687",
-9: "8.920891-1.123651",
-10: "11.894752-1.089892",
-11: "17.815744-1.058212",
-12: "35.621488-1.028215"
-}
-
-ONCHAIN_ODDS = {
-2: "35.9712-1.0285",
-3: "17.9856-1.0588",
-4: "12.0048-1.0908",
-5: "9.0009-1.1249",
-6: "7.1994-1.1613",
-7: "5.9988-1.2000",
-8: "7.1994-1.1613",
-9: "9.0009-1.1249",
-10: "12.0048-1.0908",
-11: "17.9856-1.0588",
-12: "35.9712-1.0285"
-}
-
 
 
 class Equal_NotEqual(QWidget):
@@ -55,7 +29,7 @@ class Equal_NotEqual(QWidget):
         for i in range(2,13):
             button = QPushButton(str(i))
             button.setCheckable(True)
-            button.setStyleSheet("background-color: white; color:red; font-size:30pt; font-weight:bold;")
+            button.setStyleSheet("background-color: white; color:red; font-size:22pt; font-weight:bold;")
             button.setFixedSize(btnsize)
             self.buttonGroup.addButton(button)
             self.main_grid.addWidget(button,0,i)
@@ -129,8 +103,8 @@ class Equal_NotEqual(QWidget):
         self.side = side
         self.outcome = int(self.roll_choice)
         self.amount = int(self.edit_roll_amount.get_amount())
-        self.parent.do_roll(d = self)
-
+        self.parent.do_roll(self,"dice")
+    
     def amountChanged(self):
         rollAmtInWgr = (self.edit_roll_amount.get_amount() or 0) / COIN
         if rollAmtInWgr >= MIN_ROLL_AMT and rollAmtInWgr <= MAX_ROLL_AMT and self.roll_choice != 0:
@@ -144,16 +118,17 @@ class Equal_NotEqual(QWidget):
         bb = float(0)
         if not self.edit_roll_amount.text() == "":
             bb = float(self.edit_roll_amount.text())
-            
-        
-        Current_Odd = EFFECTIVE_ODDS if self.isEffectiveOdds else ONCHAIN_ODDS
+         
+        pr_equal = calculate_potential_return(bb,self.roll_choice,"equal")
+        pr_not_equal = calculate_potential_return(bb,self.roll_choice,"notequal")
 
-        odds_equal = Current_Odd[self.roll_choice].split("-")[0]
-        odds_not_equal = Current_Odd[self.roll_choice].split("-")[1]
+        if not self.isEffectiveOdds: #calculate onchain odds
+            pr_equal = (pr_equal - 1) / 0.99 + 1
+            pr_not_equal = (pr_not_equal - 1) / 0.99 + 1
 
-      
-        pr_equal = str("PR: {0:.2f}".format(bb * float(odds_equal))) 
-        pr_not_equal = str("PR: {0:.2f}".format(bb * float(odds_not_equal)))
-        self.lbl_pr_equal.setText(pr_equal)
-        self.lbl_pr_notequal.setText(pr_not_equal)
+        pr_equal_str = format_amount(pr_equal)
+        pr_not_equal_str = format_amount(pr_not_equal)
+
+        self.lbl_pr_equal.setText(pr_equal_str)
+        self.lbl_pr_notequal.setText(pr_not_equal_str)
         

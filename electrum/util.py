@@ -530,6 +530,10 @@ def chunks(items, size: int):
     for i in range(0, len(items), size):
         yield items[i: i + size]
 
+def format_amount(amount=0, decimal_point = 6):
+    scale_factor = pow(10, decimal_point)
+    return "{0:.{}f}".replace("{}",str(decimal_point)).format(int(amount * scale_factor) / scale_factor)
+
 
 def format_satoshis_plain(x, decimal_point = 8):
     """Display a satoshi amount scaled.  Always uses a '.' as a decimal

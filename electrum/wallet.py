@@ -45,7 +45,7 @@ from .util import (NotEnoughFunds, UserCancelled, profiler,
                    format_satoshis, format_fee_satoshis, NoDynamicFeeEstimates,
                    WalletFileException, BitcoinException,
                    InvalidPassword, format_time, timestamp_to_datetime, Satoshis,
-                   Fiat, bfh, bh2u, TxMinedInfo, quantize_feerate)
+                   Fiat, bfh, bh2u, TxMinedInfo, quantize_feerate, format_amount)
 from .bitcoin import (COIN, TYPE_ADDRESS, is_address, address_to_script,
                       is_minikey, relayfee, dust_threshold)
 from .crypto import sha256d
@@ -65,6 +65,7 @@ from .interface import RequestTimedOut
 from .ecc_fast import is_using_fast_ecc
 from .mnemonic import Mnemonic
 from .logging import get_logger
+from .event import Event
 
 if TYPE_CHECKING:
     from .network import Network
@@ -627,6 +628,8 @@ class Abstract_Wallet(AddressSynchronizer):
                     
                     game_data = game_data[0]
                     self.db.add_bet(tx_hash,game_data)
+                    #play dice animation
+                    Event.getInstance().trigger_callback("roll_dice",game_data)
                 except Exception as e:
                     self.logger.info(f'Error getting game data from network: {repr(e)}')
                     continue
@@ -664,7 +667,7 @@ class Abstract_Wallet(AddressSynchronizer):
                     'bet_amount' : game_data['amount'],
                     'result' : game_data['betResultType'] if 'betResultType' in game_data else '',
                     'payoutTxHash': game_data['payoutTxHash'] if game_data['betResultType'] in betResultTypes else '',
-                    'payout': game_data['payout'] if game_data['betResultType'] in betResultTypes else ''
+                    'payout': format_amount(game_data['payout']) if game_data['betResultType'] in betResultTypes else ''
                     }
             tx_fee = None
             if show_fees:
@@ -835,12 +838,11 @@ class Abstract_Wallet(AddressSynchronizer):
                     'bet_amount': bet_data['amount'] if index == 0 else '',
                     'betResultType': bet_data['betResultType'] if 'betResultType' in bet_data else '',
                     'betType': 'parlay' if leg_count > 1 else 'single',
-                    'payout': bet_data['payout'] if index == 0 and bet_data['betResultType'] in betResultTypes else '',
+                    'payout': format_amount(bet_data['payout']) if index == 0 and bet_data['betResultType'] in betResultTypes else '',
                     'payoutTxHash': bet_data['payoutTxHash'] if index == 0 and bet_data['betResultType'] in betResultTypes else '',
                     'flip_color': flip_color
                 
                 }
-                
                 tx_fee = None
                 if show_fees:
                     tx_fee = self.get_tx_fee(tx)

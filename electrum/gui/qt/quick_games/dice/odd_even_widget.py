@@ -6,18 +6,11 @@ from electrum.gui.qt.amountedit import AmountEdit, BTCAmountEdit
 from PyQt5.QtCore import Qt
 from electrum.bitcoin import COIN
 from PyQt5.QtGui import QDoubleValidator
+from electrum.util import format_amount
+from electrum.gui.qt.quick_games.game_util import calculate_potential_return
 
 MIN_ROLL_AMT  = 25 #WGR
 MAX_ROLL_AMT  = 10000 #WGR
-
-
-EFFECTIVE_ODDS = { #effective odds OVER-UNDER
-1: "1.99-1.99",
-}
-
-ONCHAIN_ODDS = {
-1: "2-2"
-}
 
 class Odd_Even(QWidget):
     def __init__(self, parent=None):
@@ -87,7 +80,7 @@ class Odd_Even(QWidget):
     def do_roll(self, side):
         self.side = side
         self.amount = int(self.edit_roll_amount.get_amount())
-        self.parent.do_roll(d = self)
+        self.parent.do_roll(self,"dice")
 
     def amountChanged(self):
         rollAmtInWgr = (self.edit_roll_amount.get_amount() or 0) / COIN
@@ -104,15 +97,16 @@ class Odd_Even(QWidget):
             bb = float(self.edit_roll_amount.text())
             
         
-        Current_Odd = EFFECTIVE_ODDS if self.isEffectiveOdds else ONCHAIN_ODDS
+        pr_even = calculate_potential_return(bb,0,"even")
+        pr_odd = calculate_potential_return(bb,0,"odd")
 
-        even = Current_Odd[1].split("-")[0]
-        odd = Current_Odd[1].split("-")[1]
+        if not self.isEffectiveOdds: #calculate onchain odds
+            pr_even = (pr_even - 1) / 0.99 + 1
+            pr_odd = (pr_odd - 1) / 0.99 + 1
 
-      
-        pr_even = str("{0:.2f}".format(bb * float(even))) 
-        pr_odd = str("{0:.2f}".format(bb * float(odd)))
+        pr_even_str = format_amount(pr_even)
+        pr_odd_str = format_amount(pr_odd)
 
-        self.lbl_pr_even.setText(pr_even)
-        self.lbl_pr_odd.setText(pr_odd)
+        self.lbl_pr_even.setText(pr_even_str)
+        self.lbl_pr_odd.setText(pr_odd_str)
         

@@ -617,7 +617,7 @@ class DiceHistoryList(MyTreeView, AcceptFileDragDrop):
         if self.hm.flags(self.model().mapToSource(idx)) & Qt.ItemIsEditable:
             super().mouseDoubleClickEvent(event)
         else:
-            self.show_transaction(tx_item['txid'].split('-')[0]) #remove leg no from tx
+            self.show_transaction(tx_item['txid']) #remove leg no from tx
 
     def mousePressEvent(self,event: QMouseEvent):
         index = self.indexAt(event.pos())
