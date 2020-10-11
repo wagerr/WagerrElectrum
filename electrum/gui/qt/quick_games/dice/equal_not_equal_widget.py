@@ -69,13 +69,18 @@ class Equal_NotEqual(QWidget):
 
         self.lbl_pr_equal = QLabel("")
         self.lbl_pr_equal.setAlignment(Qt.AlignCenter)
-        self.lbl_pr_equal.setStyleSheet("color:#CA2626")
+        self.lbl_pr_equal.setStyleSheet("color:black;font-weight:bold;")
+
+        self.lbl_pr_label = QLabel("")
+        self.lbl_pr_label.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_label.setStyleSheet("color:black;font-weight:bold;")
+
         self.lbl_pr_notequal = QLabel("")
         self.lbl_pr_notequal.setAlignment(Qt.AlignCenter)
-        self.lbl_pr_notequal.setStyleSheet("color:#CA2626")
+        self.lbl_pr_notequal.setStyleSheet("color:black;font-weight:bold;")
        
         self.roll_control_grid.addWidget(self.lbl_pr_equal,1,1)
-        self.roll_control_grid.addWidget(QWidget(),1,2)
+        self.roll_control_grid.addWidget(self.lbl_pr_label,1,2)
         self.roll_control_grid.addWidget(self.lbl_pr_notequal,1,3)
         
 
@@ -130,5 +135,6 @@ class Equal_NotEqual(QWidget):
         pr_not_equal_str = format_amount(pr_not_equal)
 
         self.lbl_pr_equal.setText(pr_equal_str)
+        self.lbl_pr_label.setText("<-- Potential Return -->")
         self.lbl_pr_notequal.setText(pr_not_equal_str)
         

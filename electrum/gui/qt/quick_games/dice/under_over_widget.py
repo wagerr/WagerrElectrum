@@ -66,14 +66,19 @@ class Total_Under_Over(QWidget):
         self.roll_control_grid.setSpacing(20)
 
         self.lbl_pr_under = QLabel("")
-        self.lbl_pr_under.setStyleSheet("color:#CA2626")
+        self.lbl_pr_under.setStyleSheet("color:black;font-weight:bold;")
         self.lbl_pr_under.setAlignment(Qt.AlignCenter)
+
+        self.lbl_pr_label = QLabel("")
+        self.lbl_pr_label.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_label.setStyleSheet("color:black;font-weight:bold;")
+
         self.lbl_pr_over = QLabel("")
-        self.lbl_pr_over.setStyleSheet("color:#CA2626")
+        self.lbl_pr_over.setStyleSheet("color:black;font-weight:bold;")
         self.lbl_pr_over.setAlignment(Qt.AlignCenter)
         
         self.roll_control_grid.addWidget(self.lbl_pr_under,1,1)
-        self.roll_control_grid.addWidget(QWidget(),1,2)
+        self.roll_control_grid.addWidget(self.lbl_pr_label,1,2)
         self.roll_control_grid.addWidget(self.lbl_pr_over,1,3)
 
         self.roll_control_vbox.addLayout(self.roll_control_grid)
@@ -126,4 +131,5 @@ class Total_Under_Over(QWidget):
         pr_over_str = format_amount(pr_over)
 
         self.lbl_pr_over.setText(pr_over_str)
+        self.lbl_pr_label.setText("<-- Potential Return -->")
         self.lbl_pr_under.setText(pr_under_str)

@@ -636,7 +636,7 @@ class Abstract_Wallet(AddressSynchronizer):
 
             
             #place dice_place label for all bet tx
-            label = 'Dice Placed' 
+            label = 'Dice Bet Placed' 
             tx_hash_dice = tx_hash
             self.set_label(tx_hash_dice,label)
             

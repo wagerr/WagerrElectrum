@@ -271,7 +271,7 @@ class BettingMainWidget(QWidget):
            self.enable_All_Events() #enable all events when parlay list clear
            self.parlay_bet_eventId_list.clear()
         if args["type"] == "single":
-            self.remove_bet_by_item(args["listitem"],"single")
+            self.remove_bet_by_item(args["listitem"].qlistItem,"single")
            
 
 

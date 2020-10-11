@@ -59,14 +59,19 @@ class Odd_Even(QWidget):
         self.roll_control_grid.setSpacing(20)
 
         self.lbl_pr_odd = QLabel("")
-        self.lbl_pr_odd.setStyleSheet("color:#CA2626")
+        self.lbl_pr_odd.setStyleSheet("color:black;font-weight:bold;")
         self.lbl_pr_odd.setAlignment(Qt.AlignCenter)
+
+        self.lbl_pr_label = QLabel("")
+        self.lbl_pr_label.setAlignment(Qt.AlignCenter)
+        self.lbl_pr_label.setStyleSheet("color:black;font-weight:bold;")
+
         self.lbl_pr_even = QLabel("")
-        self.lbl_pr_even.setStyleSheet("color:#CA2626")
+        self.lbl_pr_even.setStyleSheet("color:black;font-weight:bold;")
         self.lbl_pr_even.setAlignment(Qt.AlignCenter)
 
         self.roll_control_grid.addWidget(self.lbl_pr_odd,1,1)
-        self.roll_control_grid.addWidget(QWidget(),1,2)
+        self.roll_control_grid.addWidget(self.lbl_pr_label,1,2)
         self.roll_control_grid.addWidget(self.lbl_pr_even,1,3)
 
         self.roll_control_vbox.addLayout(self.roll_control_grid)
@@ -108,5 +113,6 @@ class Odd_Even(QWidget):
         pr_odd_str = format_amount(pr_odd)
 
         self.lbl_pr_even.setText(pr_even_str)
+        self.lbl_pr_label.setText("<-- Potential Return -->")
         self.lbl_pr_odd.setText(pr_odd_str)
         
