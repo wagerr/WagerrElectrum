@@ -79,6 +79,8 @@ datas = [
     (electrum + PYPKG + '/locale', PYPKG + '/locale'),
     (electrum + PYPKG + '/plugins', PYPKG + '/plugins'),
     (electrum + PYPKG + '/gui/icons', PYPKG + '/gui/icons'),
+    (electrum + PYPKG + '/gui/images', PYPKG + '/gui/images'),
+    (electrum + PYPKG + '/gui/animations', PYPKG + '/gui/animations'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('safetlib')
