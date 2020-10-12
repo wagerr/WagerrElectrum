@@ -48,7 +48,6 @@ class DiceHeaderWidget(QWidget):
         self.dice_block = result["blockHeight"]
         dice1 = str(result["betInfo"]["firstDice"])
         dice2 = str(result["betInfo"]["secondDice"])
-
         self.anim_dice1.stop()
         self.anim_dice2.stop()
         
@@ -59,10 +58,14 @@ class DiceHeaderWidget(QWidget):
         def stop_dice1(frame_no):
             if frame_no == self.anim_dice1.frameCount()-2:
                 self.anim_dice1.stop()
+                
+        def stop_dice2(frame_no):
+            if frame_no == self.anim_dice2.frameCount()-2:
                 self.anim_dice2.stop()
                 
         
         self.anim_dice1.frameChanged.connect(stop_dice1)
+        self.anim_dice2.frameChanged.connect(stop_dice2)
 
         self.anim_dice1.setCacheMode(QMovie.CacheAll)
         self.anim_dice2.setCacheMode(QMovie.CacheAll)
