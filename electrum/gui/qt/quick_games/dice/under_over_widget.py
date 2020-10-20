@@ -27,8 +27,12 @@ class Total_Under_Over(QWidget):
         for i in range(2,12):
             button = QPushButton(str(i+ 0.5))
             button.setCheckable(True)
-            button.setStyleSheet("background-color: white; color:red; font-size:22pt; font-weight:bold;")
+            button.setStyleSheet("background-color: white; color:red;")
             button.setFixedSize(btnsize)
+            font = button.font()
+            font.setPointSize(22)
+            font.setBold(True);
+            button.setFont(font)
             self.buttonGroup.addButton(button)
             self.main_grid.addWidget(button,0,i)
         

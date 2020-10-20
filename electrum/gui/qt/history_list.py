@@ -593,7 +593,7 @@ class HistoryList(MyTreeView, AcceptFileDragDrop):
         menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data))
 
         for c in self.editable_columns:
-            if self.isColumnHidden(c): continue
+            if c is None or self.isColumnHidden(c): continue
             label = self.hm.headerData(c, Qt.Horizontal, Qt.DisplayRole)
             # TODO use siblingAtColumn when min Qt version is >=5.11
             persistent = QPersistentModelIndex(org_idx.sibling(org_idx.row(), c))

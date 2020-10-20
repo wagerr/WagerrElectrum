@@ -169,6 +169,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.require_fee_update = False
         self.tl_windows = []
         self.tx_external_keypairs = {}
+        self.password = None
+
+        def reset_password_timer():
+            self.password = None
+            threading.Timer(300, reset_password_timer).start()
+
+        reset_password_timer()
+
         Logger.__init__(self)
 
         self.tx_notification_queue = queue.Queue()
@@ -1107,13 +1115,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             if alias_addr:
                 if self.wallet.is_mine(alias_addr):
                     msg = _('This payment request will be signed.') + '\n' + _('Please enter your password')
-                    password = None
+                    self.password = None
                     if self.wallet.has_keystore_encryption():
-                        password = self.password_dialog(msg)
-                        if not password:
-                            return
+                        if self.password == None:
+                            self.password = self.password_dialog(msg)
+                            if not self.password:
+                                return
                     try:
-                        self.wallet.sign_payment_request(addr, alias, alias_addr, password)
+                        self.wallet.sign_payment_request(addr, alias, alias_addr, self.password)
                     except Exception as e:
                         self.show_error(str(e))
                         return
@@ -1737,20 +1746,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         An empty input is passed as the empty string.'''
         def request_password(self, *args, **kwargs):
             parent = self.top_level_window()
-            password = None
+            self.password = None
             while self.wallet.has_keystore_encryption():
-                password = self.password_dialog(parent=parent)
-                if password is None:
-                    # User cancelled password input
-                    return
+                if self.password == None:
+                    self.password = self.password_dialog(parent=parent)
+                    if self.password is None:
+                        # User cancelled password input
+                        return
                 try:
-                    self.wallet.check_password(password)
+                    self.wallet.check_password(self.password)
                     break
                 except Exception as e:
                     self.show_error(str(e), parent=parent)
                     continue
 
-            kwargs['password'] = password
+            kwargs['password'] = self.password
             return func(self, *args, **kwargs)
         return request_password
 
@@ -1941,12 +1951,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if self.wallet.has_keystore_encryption():
             msg.append("")
             msg.append(_("Enter your password to proceed"))
-            password = self.password_dialog('\n'.join(msg))
-            if not password:
-                return
+            if self.password == None:
+                self.password = self.password_dialog('\n'.join(msg))
+                if not self.password:
+                    return
         else:
             msg.append(_('Proceed?'))
-            password = None
+            self.password = None
             if not self.question('\n'.join(msg)):
                 return
 
@@ -1962,7 +1973,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     
                     
         print('do_roll calling sign_tx_with_password')
-        self.sign_tx_with_password(tx, sign_done, password)
+        self.sign_tx_with_password(tx, sign_done, self.password)
       
     def do_bet(self,a , bettype ,preview = False):
         #print('do_bet called')
@@ -2031,12 +2042,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if self.wallet.has_keystore_encryption():
             msg.append("")
             msg.append(_("Enter your password to proceed"))
-            password = self.password_dialog('\n'.join(msg))
-            if not password:
-                return
+            if self.password == None:
+                self.password = self.password_dialog('\n'.join(msg))
+                if not self.password:
+                    return
         else:
             msg.append(_('Proceed?'))
-            password = None
+            self.password = None
             if not self.question('\n'.join(msg)):
                 return
 
@@ -2052,7 +2064,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     
                     
         print('do_bet calling sign_tx_with_password')
-        self.sign_tx_with_password(tx, sign_done, password)
+        self.sign_tx_with_password(tx, sign_done, self.password)
         
     def do_send(self, preview = False):
         print('do_send called')
@@ -2119,12 +2131,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if self.wallet.has_keystore_encryption():
             msg.append("")
             msg.append(_("Enter your password to proceed"))
-            password = self.password_dialog('\n'.join(msg))
-            if not password:
-                return
+            if self.password == None:
+                self.password = self.password_dialog('\n'.join(msg))
+                if not self.password:
+                    return
         else:
             msg.append(_('Proceed?'))
-            password = None
+            self.password = None
             if not self.question('\n'.join(msg)):
                 return
 
@@ -2137,7 +2150,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     print('sign_done else')
                     self.broadcast_transaction(tx, tx_desc)
         print('calling sign_tx_with_password')
-        self.sign_tx_with_password(tx, sign_done, password)
+        self.sign_tx_with_password(tx, sign_done, self.password)
 
     @protected
     def sign_tx(self, tx, callback, password):
@@ -2151,6 +2164,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             callback(True)
         def on_failure(exc_info):
             self.on_error(exc_info)
+            self.password = None
             callback(False)
         on_success = run_hook('tc_sign_wrapper', self.wallet, tx, on_success, on_failure) or on_success
         if self.tx_external_keypairs:

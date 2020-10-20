@@ -666,6 +666,7 @@ class Abstract_Wallet(AddressSynchronizer):
                     'roll_total' : game_data['betInfo']['sum'],
                     'bet_amount' : game_data['amount'],
                     'result' : game_data['betResultType'] if 'betResultType' in game_data else '',
+                    'resultBlockHash':game_data['resultBlockHash'] if 'resultBlockHash' in game_data else '',
                     'payoutTxHash': game_data['payoutTxHash'] if game_data['betResultType'] in betResultTypes else '',
                     'payout': format_amount(game_data['payout']) if game_data['betResultType'] in betResultTypes else ''
                     }

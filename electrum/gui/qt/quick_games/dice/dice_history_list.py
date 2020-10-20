@@ -212,6 +212,8 @@ class DiceHistoryModel(QAbstractItemModel, Logger):
                 return QVariant(blue_brush)
             elif col == DiceHistoryColumns.PAYOUT_TX_HASH and not payoutTxHash == '' and role == Qt.DecorationRole:
                 return QVariant(read_QIcon('copy.png'))
+            elif col == DiceHistoryColumns.RESULT and role == Qt.DecorationRole:
+                return QVariant(read_QIcon('copy.png'))
             return QVariant()
         if col == DiceHistoryColumns.STATUS_TEXT:
             return QVariant(status_str)
@@ -626,6 +628,8 @@ class DiceHistoryList(MyTreeView, AcceptFileDragDrop):
         tx_item = self.tx_item_from_proxy_row(index.row())
         if(index.column() == DiceHistoryColumns.PAYOUT_TX_HASH): #clipboard copy tx_hash
             self.parent.app.clipboard().setText(tx_item['payoutTxHash'])
+        if(index.column() == DiceHistoryColumns.RESULT): #clipboard copy result_block_hash
+            self.parent.app.clipboard().setText(tx_item['resultBlockHash'])
 
     def show_transaction(self, tx_hash):
         tx = self.wallet.db.get_transaction(tx_hash)
@@ -667,12 +671,14 @@ class DiceHistoryList(MyTreeView, AcceptFileDragDrop):
         menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data))
 
         for c in self.editable_columns:
-            if self.isColumnHidden(c): continue
+            if c is None or self.isColumnHidden(c): continue
             label = self.hm.headerData(c, Qt.Horizontal, Qt.DisplayRole)
             # TODO use siblingAtColumn when min Qt version is >=5.11
             persistent = QPersistentModelIndex(org_idx.sibling(org_idx.row(), c))
             menu.addAction(_("Edit {}").format(label), lambda p=persistent: self.edit(QModelIndex(p)))
-        menu.addAction(_("Details"), lambda: self.show_transaction(tx_hash))
+        menu.addAction(_("Copy Result BlockHash"), lambda: self.parent.app.clipboard().setText(tx_item['resultBlockHash']))
+        menu.addAction(_("View Bet Tx details"), lambda: self.show_transaction(tx_hash))
+        
         if is_unconfirmed and tx:
             # note: the current implementation of RBF *needs* the old tx fee
             rbf = is_mine and not tx.is_final() and fee is not None

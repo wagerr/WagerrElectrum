@@ -499,7 +499,7 @@ class MyTreeView(QTreeView):
 
         # Control which columns are editable
         if editable_columns is None:
-            editable_columns = {stretch_column}
+            editable_columns = { None }#{stretch_column}
         else:
             editable_columns = set(editable_columns)
         self.editable_columns = editable_columns
