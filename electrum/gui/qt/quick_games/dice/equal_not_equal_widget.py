@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QButtonGroup, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 from PyQt5.QtCore import QSize, Qt
 from electrum.gui.qt.amountedit import AmountEdit, BTCAmountEdit
-from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtGui import QDoubleValidator, QFontMetrics
 from electrum.bitcoin import COIN
 from electrum.util import format_amount
 from ..game_util import calculate_potential_return
@@ -25,19 +25,19 @@ class Equal_NotEqual(QWidget):
         self.main_grid = QGridLayout()
         self.buttonGroup = QButtonGroup()
         
-        btnsize = QSize(70,70)
+        btnsize = QSize(85,70)
         for i in range(2,13):
             button = QPushButton(str(i))
             button.setCheckable(True)
             button.setStyleSheet("background-color: white; color:red;")
-            button.setFixedSize(btnsize)
             font = button.font()
             font.setPointSize(22)
-            font.setBold(True);
+            font.setBold(True)
             button.setFont(font)
+            button.setFixedSize(btnsize)
             self.buttonGroup.addButton(button)
             self.main_grid.addWidget(button,0,i)
-        
+            
         self.buttonGroup.buttonClicked[int].connect(self.roll_selected)
 
         self.btn_equal_to = QPushButton("Equal to")

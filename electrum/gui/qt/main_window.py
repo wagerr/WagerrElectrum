@@ -171,12 +171,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.tx_external_keypairs = {}
         self.password = None
 
-        def reset_password_timer():
+        def reset_password():
             self.password = None
-            threading.Timer(300, reset_password_timer).start()
 
-        reset_password_timer()
-
+        self.gui_object.password_timer.timeout.connect(reset_password)
+        
         Logger.__init__(self)
 
         self.tx_notification_queue = queue.Queue()
@@ -1758,6 +1757,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     break
                 except Exception as e:
                     self.show_error(str(e), parent=parent)
+                    self.password = None
                     continue
 
             kwargs['password'] = self.password

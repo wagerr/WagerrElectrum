@@ -112,6 +112,10 @@ class ElectrumGui(Logger):
         self.timer.setSingleShot(False)
         self.timer.setInterval(500)  # msec
 
+        self.password_timer = QTimer(self.app)
+        self.password_timer.setSingleShot(False)
+        self.password_timer.setInterval(300000)
+
         self.nd = None
         self.network_updated_signal_obj = QNetworkUpdatedSignalObject()
         self._num_wizards_in_progress = 0
@@ -328,6 +332,7 @@ class ElectrumGui(Logger):
             self.logger.exception('')
             return
         self.timer.start()
+        self.password_timer.start()
         self.config.open_last_wallet()
         path = self.config.get_wallet_path()
         if not self.start_new_window(path, self.config.get('url'), app_is_starting=True):
@@ -349,6 +354,7 @@ class ElectrumGui(Logger):
         def clean_up():
             # Shut down the timer cleanly
             self.timer.stop()
+            self.password_timer.stop()
             # clipboard persistence. see http://www.mail-archive.com/pyqt@riverbankcomputing.com/msg17328.html
             event = QtCore.QEvent(QtCore.QEvent.Clipboard)
             self.app.sendEvent(self.app.clipboard(), event)

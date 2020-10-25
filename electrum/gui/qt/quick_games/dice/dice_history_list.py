@@ -676,7 +676,7 @@ class DiceHistoryList(MyTreeView, AcceptFileDragDrop):
             # TODO use siblingAtColumn when min Qt version is >=5.11
             persistent = QPersistentModelIndex(org_idx.sibling(org_idx.row(), c))
             menu.addAction(_("Edit {}").format(label), lambda p=persistent: self.edit(QModelIndex(p)))
-        menu.addAction(_("Copy Result BlockHash"), lambda: self.parent.app.clipboard().setText(tx_item['resultBlockHash']))
+        menu.addAction(_("Copy result hash"), lambda: self.parent.app.clipboard().setText(tx_item['resultBlockHash']))
         menu.addAction(_("View Bet Tx details"), lambda: self.show_transaction(tx_hash))
         
         if is_unconfirmed and tx:

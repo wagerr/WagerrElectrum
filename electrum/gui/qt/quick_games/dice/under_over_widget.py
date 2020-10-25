@@ -23,7 +23,7 @@ class Total_Under_Over(QWidget):
         self.roll_choice = 0
         self.main_grid = QGridLayout()
         self.buttonGroup = QButtonGroup()
-        btnsize = QSize(70,70)
+        btnsize = QSize(85,70)
         for i in range(2,12):
             button = QPushButton(str(i+ 0.5))
             button.setCheckable(True)
