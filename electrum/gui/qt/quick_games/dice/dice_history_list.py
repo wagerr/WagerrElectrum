@@ -668,7 +668,7 @@ class DiceHistoryList(MyTreeView, AcceptFileDragDrop):
         amount_columns = [DiceHistoryColumns.COIN_VALUE, DiceHistoryColumns.RUNNING_COIN_BALANCE, DiceHistoryColumns.FIAT_VALUE, DiceHistoryColumns.FIAT_ACQ_PRICE, DiceHistoryColumns.FIAT_CAP_GAINS]
         if column in amount_columns:
             column_data = column_data.strip()
-        menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data))
+        menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(str(column_data)))
 
         for c in self.editable_columns:
             if c is None or self.isColumnHidden(c): continue
