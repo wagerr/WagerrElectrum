@@ -213,6 +213,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         tabs.addTab(self.betting_tab, read_QIcon("tab_betting.png"), _('Betting'))
         tabs.addTab(self.chaingames_tab, read_QIcon("tab_chaingame.png"), _('ChainGames'))
         tabs.addTab(self.create_betting_history_tab(), read_QIcon("tab_bettinghistory.png"), _('Betting History'))
+        tabs.setTabEnabled(4, False)
         def add_optional_tab(tabs, tab, icon, description, name):
             tab.tab_icon = icon
             tab.tab_description = description
