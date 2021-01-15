@@ -70,6 +70,10 @@ Windows SmartScreen warning when starting it.
 The release signing procedure involves a signer (the holder of the
 certificate/key) and one or multiple trusted verifiers:
 
+Sign exe:
+```
+go to Wagerr-Electrum/contrib/build-wine/fresh_clone/electrum/contrib/build-wine and run ./sign.sh 
+```
 
 | Signer                                                    | Verifier                          |
 |-----------------------------------------------------------|-----------------------------------|
