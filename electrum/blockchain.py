@@ -292,7 +292,10 @@ class Blockchain(Logger):
         if os.path.exists(p):
             fileSize = os.path.getsize(p)
             preMtpSize = constants.net.COIN.static_header_offset(constants.net.COIN.PRE_ZEROCOIN_BLOCKS)
-            if fileSize > preMtpSize:
+            V7MtpSize = constants.net.COIN.static_header_offset(constants.net.COIN.HEADER_V7_BLOCKS)
+            if fileSize > V7MtpSize:
+                self._size = constants.net.COIN.HEADER_V7_BLOCKS + (fileSize - V7MtpSize) // constants.net.COIN.HEADER_V7_SIZE
+            elif fileSize > preMtpSize:
                 self._size = constants.net.COIN.PRE_ZEROCOIN_BLOCKS + (fileSize - preMtpSize) // constants.net.COIN.ZEROCOIN_HEADER_SIZE
             else:
                 self._size = fileSize // constants.net.COIN.PRE_ZEROCOIN_HEADER_SIZE
@@ -537,6 +540,8 @@ class Blockchain(Logger):
             for hdr in chain:
                 if hdr.get('block_height') == block_height:
                     return hdr
+        def isfTimeV2(height):
+            return height >= 1501000 #nBlockTimeProtocolV2 '7 January 2021
 
         assert height > 0, "Using dark gravity before fork block"
 
@@ -547,18 +552,27 @@ class Blockchain(Logger):
 
         if (height-1) > LAST_POW_BLOCK:
             bnTargetLimit = 0x000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            fTimeV2 = isfTimeV2(height)
             nTargetSpacing = 60
-            nTargetTimespan = 60 * 40
+            nTimeSlotLength = 15
+            nTargetTimespan_V2 = 2 * nTimeSlotLength * 60
+            nTargetTimespan_V1 = 40 * 60
+            nTargetTimespan = nTargetTimespan_V2 if fTimeV2 == True else nTargetTimespan_V1
 
             nActualSpacing = 0
-            if height != 0:
+            if (height-1) != 0:
                 lastToLast = header_from_chain(height - 2)
                 nActualSpacing = int(last.get('timestamp') - lastToLast.get('timestamp'))
 
             if nActualSpacing < 0:
                 nActualSpacing = 1
+            if fTimeV2 == True and nActualSpacing > nTargetSpacing*10:
+                nActualSpacing = nTargetSpacing*10
 
             new_target = self.bits_to_target(last.get('bits'))
+
+            if fTimeV2 == True and not isfTimeV2(height-1):
+                new_target = new_target << 4
 
             nInterval = nTargetTimespan // nTargetSpacing
 
