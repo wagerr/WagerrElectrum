@@ -32,7 +32,7 @@ After downloading, uncompress it.
 
 Make sure it is the "selected" xcode (e.g.):
 
-    sudo xcode-select -s $HOME/Downloads/Xcode.app/Contents/Developer/
+    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
 
 #### 1.1b Build QR scanner separately on newer Mac
 
